@@ -172,12 +172,10 @@ function renderRoster(roster) {
         <td>${escHtml(c.realm || '—')}</td>
         <td class="${css}">${escHtml(c.class || '—')}</td>
         <td>${escHtml(c.role || '—')}</td>
-        <td>${ep}</td>
-        <td>${gp}</td>
         <td><span class="status-badge status-${escHtml(status)}">${escHtml(status)}</span></td>
       </tr>
       <tr class="roster-detail-row hidden" id="${charId}">
-        <td colspan="8">
+        <td colspan="6">
           <div class="detail-content">
             <div class="detail-grid">
               <div class="detail-item">
