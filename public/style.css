@@ -382,6 +382,10 @@ body {
 
 .btn-icon { font-size: 17px; }
 
+.btn-no-top-margin {
+  margin-top: -4px;
+}
+
 /* ── Data Tables ────────────────────────────────────────────────── */
 .data-table {
   width: 100%;
@@ -583,6 +587,11 @@ body {
 
 .form-group {
   margin-bottom: 22px;
+}
+
+.form-group-no-top-margin {
+  margin-bottom: 22px;
+  margin-top: -16px;
 }
 
 .form-group label {
