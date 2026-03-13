@@ -3,6 +3,13 @@
 --  Run against remote:  npm run db:init:remote
 --  Run against local:   npm run db:init
 -- ============================================================
+--
+-- ⚠️  IMPORTANT: Keep in sync with functions/db-init.js!
+-- When modifying the database schema, update BOTH files:
+--   1. functions/db-init.js (automatic initialization on first request)
+--   2. schema.sql (manual initialization for fresh deployments)
+-- Keeping them in sync ensures all environments (local, dev, prod) work correctly.
+--
 
 -- ─── Settings (key/value store) ──────────────────────────────
 CREATE TABLE IF NOT EXISTS settings (
