@@ -49,6 +49,22 @@ async function initializeDatabase(env) {
       updated_at  TEXT DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS ep_log (
+      id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      name      TEXT DEFAULT '',
+      ep        INTEGER DEFAULT 0,
+      reason    TEXT DEFAULT '',
+      timestamp TEXT DEFAULT ''
+    );
+
+    CREATE TABLE IF NOT EXISTS gp_log (
+      id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      name      TEXT DEFAULT '',
+      gp        INTEGER DEFAULT 0,
+      reason    TEXT DEFAULT '',
+      timestamp TEXT DEFAULT ''
+    );
+
     INSERT OR REPLACE INTO settings (key, value)
     VALUES ('wowaudit_api_key', '62581957225650bd6cd7902ea6f45b3d175a372c524083d3eb30696260bc672d');
 
