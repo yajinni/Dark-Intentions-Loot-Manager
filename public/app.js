@@ -643,6 +643,8 @@ $('#edit-ep-btn').addEventListener('click', async () => {
       $('#ep-name-select').value = '';
       $('#ep-value-input').value = '';
       $('#ep-reason-input').value = '';
+      // Reload roster to update PR values
+      await loadRoster();
       clearUnsavedChanges();
     } else {
       showMessage('epgp', 'error', `✗ ${data.error || 'Save failed'}`);
@@ -691,6 +693,8 @@ $('#edit-gp-btn').addEventListener('click', async () => {
       $('#gp-name-select').value = '';
       $('#gp-value-input').value = '';
       $('#gp-reason-input').value = '';
+      // Reload roster to update PR values
+      await loadRoster();
       clearUnsavedChanges();
     } else {
       showMessage('epgp', 'error', `✗ ${data.error || 'Save failed'}`);
@@ -908,6 +912,9 @@ function renderCustomEpButtons() {
         if (data.success) {
           showMessage('epgp', 'success', `✓ Awarded ${buttonEp} EP to ${selectedChar}`);
           charSelect.value = '';
+          // Reload roster to update PR values
+          await loadRoster();
+          clearUnsavedChanges();
         } else {
           showMessage('epgp', 'error', `✗ ${data.error || 'Failed to award EP'}`);
         }
