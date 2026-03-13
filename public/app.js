@@ -153,22 +153,26 @@ async function loadRoster() {
 function renderRoster(roster) {
   const tbody = $('#roster-tbody');
   if (roster.length === 0) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No matching roster members.</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No matching roster members.</td></tr>';
     return;
   }
 
   tbody.innerHTML = roster.map(c => {
     const css    = classCss(c.class);
     const status = (c.status || 'active').toLowerCase();
+    const ep = c.ep ?? 0;
+    const gp = c.gp ?? 0;
+    const pr = gp > 0 ? (ep / gp).toFixed(2) : '—';
 
     return `
       <tr>
+        <td>${pr}</td>
         <td><span class="char-name ${css}">${escHtml(c.name)}</span></td>
         <td>${escHtml(c.realm || '—')}</td>
         <td class="${css}">${escHtml(c.class || '—')}</td>
         <td>${escHtml(c.role || '—')}</td>
-        <td>${c.ep ?? 0}</td>
-        <td>${c.gp ?? 0}</td>
+        <td>${ep}</td>
+        <td>${gp}</td>
         <td><span class="status-badge status-${escHtml(status)}">${escHtml(status)}</span></td>
       </tr>`;
   }).join('');
@@ -188,8 +192,31 @@ function sortRoster(key) {
 
   // Sort data
   const sorted = [...rosterData].sort((a, b) => {
-    const aVal = String(a[key] || '').toLowerCase();
-    const bVal = String(b[key] || '').toLowerCase();
+    let aVal, bVal;
+
+    // Handle PR (Priority Ratio) calculation
+    if (key === 'pr') {
+      const aEp = a.ep ?? 0;
+      const aGp = a.gp ?? 0;
+      const bEp = b.ep ?? 0;
+      const bGp = b.gp ?? 0;
+      aVal = aGp > 0 ? aEp / aGp : -1;
+      bVal = bGp > 0 ? bEp / bGp : -1;
+      const cmp = aVal - bVal;
+      return rosterSortDir === 'asc' ? cmp : -cmp;
+    }
+
+    // Handle numeric fields
+    if (key === 'ep' || key === 'gp') {
+      aVal = a[key] ?? 0;
+      bVal = b[key] ?? 0;
+      const cmp = aVal - bVal;
+      return rosterSortDir === 'asc' ? cmp : -cmp;
+    }
+
+    // Default string sorting
+    aVal = String(a[key] || '').toLowerCase();
+    bVal = String(b[key] || '').toLowerCase();
     const cmp = aVal.localeCompare(bVal);
     return rosterSortDir === 'asc' ? cmp : -cmp;
   });
