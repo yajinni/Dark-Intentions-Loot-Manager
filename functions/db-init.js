@@ -87,9 +87,8 @@ async function initializeDatabase(env) {
       ('Waist',     0),
       ('Legs',      0),
       ('Feet',      0),
-      ('Ring 1',    0),
-      ('Trinket 1', 0),
-      ('Trinket 2', 0),
+      ('Ring',      0),
+      ('Trinket',   0),
       ('Main Hand', 0),
       ('Off Hand',  0);
   `;
