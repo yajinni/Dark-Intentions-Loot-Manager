@@ -215,15 +215,15 @@
               <button class="btn btn-icon-only" id="toggle-api-key" title="Toggle visibility">
                 👁
               </button>
+              <button id="save-admin-btn" class="btn btn-primary">
+                <span class="btn-icon">💾</span> Save Settings
+              </button>
             </div>
             <small class="form-hint">
               Used in the <code>Authorization</code> header for all WoWAudit API requests.
               Stored in the D1 database.
             </small>
           </div>
-          <button id="save-admin-btn" class="btn btn-primary">
-            <span class="btn-icon">💾</span> Save Settings
-          </button>
         </section>
 
         <section class="admin-section">
@@ -234,24 +234,24 @@
         </section>
 
         <section class="admin-section">
-          <h2 class="section-title">Default GP Setting</h2>
           <div class="form-group">
-            <label for="default-gp-input">Default GP for New Characters:</label>
-            <input
-              type="number"
-              id="default-gp-input"
-              class="form-input"
-              placeholder="Default GP value..."
-              min="0"
-            >
+            <label for="default-gp-input">Default GP:</label>
+            <div class="input-group">
+              <input
+                type="number"
+                id="default-gp-input"
+                class="form-input"
+                placeholder="Default GP value..."
+                min="0"
+              >
+              <button id="save-default-gp-btn" class="btn btn-primary">
+                <span class="btn-icon">💾</span> Save
+              </button>
+            </div>
             <small class="form-hint">
               This value is assigned to new characters when synced from WoWAudit.
-              Current default: 2 GP
             </small>
           </div>
-          <button id="save-default-gp-btn" class="btn btn-primary">
-            <span class="btn-icon">💾</span> Save Default GP
-          </button>
         </section>
 
         <section class="admin-section">
