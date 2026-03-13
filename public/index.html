@@ -112,9 +112,6 @@
     <div id="tab-epgp" class="tab-panel">
       <div class="panel-header">
         <h1>EPGP</h1>
-        <button id="save-epgp-btn" class="btn btn-primary">
-          <span class="btn-icon">💾</span> Save Values
-        </button>
       </div>
       <div id="epgp-message" class="message hidden"></div>
       <div class="content-scroll">
@@ -124,19 +121,24 @@
             <h2 class="section-title">Gear Slot Point Value</h2>
           </button>
           <div id="gear-slot-content" class="collapsible-content">
-            <table id="epgp-table" class="data-table gear-table">
-              <thead>
-                <tr>
-                  <th>Gear Slot</th>
-                  <th>Point Value</th>
-                  <th>Gear Slot</th>
-                  <th>Point Value</th>
-                </tr>
-              </thead>
-              <tbody id="epgp-tbody">
-                <!-- Populated by app.js -->
-              </tbody>
-            </table>
+            <div class="gear-table-wrapper">
+              <button id="save-epgp-btn" class="btn btn-primary">
+                <span class="btn-icon">💾</span> Save Values
+              </button>
+              <table id="epgp-table" class="data-table gear-table">
+                <thead>
+                  <tr>
+                    <th>Gear Slot</th>
+                    <th>Point Value</th>
+                    <th>Gear Slot</th>
+                    <th>Point Value</th>
+                  </tr>
+                </thead>
+                <tbody id="epgp-tbody">
+                  <!-- Populated by app.js -->
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 

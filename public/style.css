@@ -534,6 +534,17 @@ body {
   padding-bottom: 8px;
 }
 
+.gear-table-wrapper {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.gear-table-wrapper .btn {
+  flex-shrink: 0;
+  height: fit-content;
+}
+
 .gear-table {
   max-width: 720px;
 }
