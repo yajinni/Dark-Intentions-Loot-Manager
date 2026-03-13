@@ -73,22 +73,22 @@
       </div>
       <div id="roster-message" class="message hidden"></div>
       <div class="content-scroll">
-        <table id="roster-table" class="data-table">
+        <div class="roster-filters">
+          <input type="text" id="roster-search" class="filter-input" placeholder="Filter roster...">
+        </div>
+        <table id="roster-table" class="data-table sortable">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Realm</th>
-              <th>Class</th>
-              <th>Spec</th>
-              <th>Role</th>
-              <th>Rank</th>
-              <th>iLvl</th>
-              <th>Status</th>
+              <th class="sortable-header" data-sort="name">Name</th>
+              <th class="sortable-header" data-sort="realm">Realm</th>
+              <th class="sortable-header" data-sort="class">Class</th>
+              <th class="sortable-header" data-sort="role">Role</th>
+              <th class="sortable-header" data-sort="status">Status</th>
             </tr>
           </thead>
           <tbody id="roster-tbody">
             <tr class="empty-row">
-              <td colspan="8">No roster data. Click "Sync from WoWAudit" to load characters.</td>
+              <td colspan="5">No roster data. Click "Sync from WoWAudit" to load characters.</td>
             </tr>
           </tbody>
         </table>
@@ -131,6 +131,30 @@
             <!-- Populated by app.js -->
           </tbody>
         </table>
+
+        <h2 class="section-title">Edit EP</h2>
+        <div class="epgp-log-form">
+          <select id="ep-name-select" class="form-input">
+            <option value="">Select Character</option>
+          </select>
+          <input type="number" id="ep-value-input" class="form-input" placeholder="+/- EP">
+          <input type="text" id="ep-reason-input" class="form-input" placeholder="Reason">
+          <button id="edit-ep-btn" class="btn btn-primary">
+            <span class="btn-icon">📝</span> Edit EP
+          </button>
+        </div>
+
+        <h2 class="section-title">Edit GP</h2>
+        <div class="epgp-log-form">
+          <select id="gp-name-select" class="form-input">
+            <option value="">Select Character</option>
+          </select>
+          <input type="number" id="gp-value-input" class="form-input" placeholder="+/- GP">
+          <input type="text" id="gp-reason-input" class="form-input" placeholder="Reason">
+          <button id="edit-gp-btn" class="btn btn-primary">
+            <span class="btn-icon">📝</span> Edit GP
+          </button>
+        </div>
       </div>
     </div>
 

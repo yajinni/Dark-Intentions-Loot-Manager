@@ -564,6 +564,23 @@ body {
   color: var(--color-gold);
 }
 
+/* ── EPGP Log Form ──────────────────────────────────────────────── */
+.epgp-log-form {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  align-items: flex-end;
+}
+
+.epgp-log-form .form-input {
+  flex: 1;
+  min-width: 120px;
+}
+
+.epgp-log-form .btn {
+  flex-shrink: 0;
+}
+
 /* ── Roster Filters ─────────────────────────────────────────────── */
 .roster-filters {
   margin-bottom: 16px;
