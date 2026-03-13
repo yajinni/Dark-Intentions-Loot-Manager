@@ -153,7 +153,7 @@ async function loadRoster() {
 function renderRoster(roster) {
   const tbody = $('#roster-tbody');
   if (roster.length === 0) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No matching roster members.</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No matching roster members.</td></tr>';
     return;
   }
 
@@ -167,6 +167,8 @@ function renderRoster(roster) {
         <td>${escHtml(c.realm || '—')}</td>
         <td class="${css}">${escHtml(c.class || '—')}</td>
         <td>${escHtml(c.role || '—')}</td>
+        <td>${c.ep ?? 0}</td>
+        <td>${c.gp ?? 0}</td>
         <td><span class="status-badge status-${escHtml(status)}">${escHtml(status)}</span></td>
       </tr>`;
   }).join('');

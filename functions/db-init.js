@@ -38,8 +38,6 @@ async function initializeDatabase(env) {
       rank         INTEGER,
       rank_name    TEXT,
       ilvl         REAL,
-      ep           INTEGER DEFAULT 0,
-      gp           INTEGER DEFAULT 2,
       status       TEXT DEFAULT 'active',
       last_updated TEXT DEFAULT (datetime('now'))
     );
