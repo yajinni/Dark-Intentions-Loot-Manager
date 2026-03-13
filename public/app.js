@@ -329,11 +329,11 @@ async function loadTransactionHistory(characterName) {
 async function openTransactionHistoryModal(characterName) {
   const modal = $('#transaction-history-modal');
   const transactions = await loadTransactionHistory(characterName);
-  populateHistoryModal(transactions, characterName);
+  await populateHistoryModal(transactions, characterName);
   modal.classList.remove('hidden');
 }
 
-function formatReasonWithLinks(reason) {
+async function formatReasonWithLinks(reason) {
   if (!reason) return '(no reason)';
 
   // If the reason already contains HTML link tags, extract the URL and clean it up
@@ -349,10 +349,41 @@ function formatReasonWithLinks(reason) {
   const placeholderPrefix = '__WOWHEAD_';
   const placeholderSuffix = '__';
 
+  // Collect all item IDs to fetch names for
+  const itemIds = [];
+  const matches = [...cleanReason.matchAll(wowheadUrlRegex)];
+
+  for (const match of matches) {
+    const itemId = match[0].match(/item=(\d+)/)[1];
+    if (!itemIds.includes(itemId)) {
+      itemIds.push(itemId);
+    }
+  }
+
+  // Fetch all item names in parallel
+  const itemNames = {};
+  try {
+    const namePromises = itemIds.map(id =>
+      fetch(`/api/item-info?id=${id}`)
+        .then(r => r.json())
+        .then(data => {
+          itemNames[id] = data.name || id;
+        })
+        .catch(() => {
+          itemNames[id] = id; // Fallback to ID if fetch fails
+        })
+    );
+    await Promise.all(namePromises);
+  } catch (err) {
+    console.error('Error fetching item names:', err);
+    // If fetch fails, we'll fall back to showing item IDs
+  }
+
   result = result.replace(wowheadUrlRegex, (match) => {
     const itemId = match.match(/item=(\d+)/)[1];
-    // WoWhead shows item name and icon when link text is just the item ID
-    links.push(`<a href="${match}" target="_blank" class="wowhead-link">${itemId}</a>`);
+    const itemName = itemNames[itemId] || itemId;
+    // Create link with item name (WoWhead tooltip will work based on the href URL)
+    links.push(`<a href="${match}" target="_blank" class="wowhead-link">${escHtml(itemName)}</a>`);
     return placeholderPrefix + (links.length - 1) + placeholderSuffix;
   });
 
@@ -368,7 +399,7 @@ function formatReasonWithLinks(reason) {
   return result;
 }
 
-function populateHistoryModal(transactions, characterName) {
+async function populateHistoryModal(transactions, characterName) {
   const titleEl = $('#transaction-history-title');
   const listEl = $('#transaction-list');
 
@@ -379,12 +410,17 @@ function populateHistoryModal(transactions, characterName) {
     return;
   }
 
-  listEl.innerHTML = transactions.map(t => {
+  // Format all transaction reasons in parallel
+  const formattedReasons = await Promise.all(
+    transactions.map(t => formatReasonWithLinks(t.reason))
+  );
+
+  listEl.innerHTML = transactions.map((t, index) => {
     const badge = t.type.toUpperCase();
     const badgeClass = t.type === 'ep' ? 'ep' : 'gp';
     const formattedTime = new Date(t.timestamp).toLocaleString();
     const amount = t.amount ?? 0;
-    const reasonHTML = formatReasonWithLinks(t.reason);
+    const reasonHTML = formattedReasons[index];
 
     // Store original data in data attributes for later retrieval
     const originalAmount = escHtml(String(t.amount ?? 0));
