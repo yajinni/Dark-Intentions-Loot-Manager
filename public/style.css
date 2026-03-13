@@ -477,7 +477,7 @@ body {
 .detail-value {
   color: var(--color-text);
   font-family: 'Courier New', monospace;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 /* Roster: class-coloured names */
