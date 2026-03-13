@@ -351,7 +351,8 @@ function formatReasonWithLinks(reason) {
 
   result = result.replace(wowheadUrlRegex, (match) => {
     const itemId = match.match(/item=(\d+)/)[1];
-    links.push(`<a href="${match}" target="_blank" class="wowhead-link">[Item ${itemId}]</a>`);
+    // WoWhead shows item name and icon when link text is just the item ID
+    links.push(`<a href="${match}" target="_blank" class="wowhead-link">${itemId}</a>`);
     return placeholderPrefix + (links.length - 1) + placeholderSuffix;
   });
 
