@@ -623,8 +623,12 @@ body {
   color: var(--color-gold);
 }
 
+.collapsible-section:has(.collapsible-header.collapsed) {
+  border: none;
+}
+
 .collapsible-header.collapsed {
-  border-bottom: none;
+  border-bottom: none !important;
 }
 
 .collapsible-header.collapsed .collapse-icon {
