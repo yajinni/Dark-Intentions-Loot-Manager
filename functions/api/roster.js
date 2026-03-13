@@ -117,19 +117,26 @@ export async function onRequest({ request, env }) {
         .first();
       const defaultGp = defaultGpRow?.value ? parseInt(defaultGpRow.value) : 2;
 
-      // Replace roster with fresh data
+      // Replace roster with fresh data, clearing all related logs
       await env.DB.prepare('DELETE FROM roster').run();
+
+      // Clear old GP and EP logs (will be repopulated with defaults)
+      try {
+        await env.DB.prepare('DELETE FROM gp_log').run();
+      } catch (e) {
+        // gp_log table may not exist yet; ignore
+      }
+
+      try {
+        await env.DB.prepare('DELETE FROM ep_log').run();
+      } catch (e) {
+        // ep_log table may not exist yet; ignore
+      }
 
       const stmt = env.DB.prepare(`
         INSERT INTO roster
           (character_id, name, realm, class, spec, role, rank, rank_name, ilvl, status)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `);
-
-      // Also prepare GP log insert for initial values
-      const gpLogStmt = env.DB.prepare(`
-        INSERT INTO gp_log (name, gp, reason, timestamp)
-        VALUES (?, ?, ?, ?)
       `);
 
       const now = new Date().toISOString();
@@ -155,7 +162,10 @@ export async function onRequest({ request, env }) {
 
         // Add initial GP log entry for this character
         try {
-          await gpLogStmt
+          await env.DB.prepare(`
+            INSERT INTO gp_log (name, gp, reason, timestamp)
+            VALUES (?, ?, ?, ?)
+          `)
             .bind(charName, defaultGp, 'Initial GP on roster sync', now)
             .run();
         } catch (e) {
