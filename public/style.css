@@ -634,7 +634,7 @@ body {
 }
 
 .collapsible-header.collapsed .collapse-icon {
-  transform: rotate(-90deg);
+  transform: translateY(-3px) rotate(-90deg);
 }
 
 .collapsible-content {
