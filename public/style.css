@@ -864,6 +864,10 @@ body {
   width: 90%;
 }
 
+#transaction-history-modal .modal-content {
+  max-width: 1000px;
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
