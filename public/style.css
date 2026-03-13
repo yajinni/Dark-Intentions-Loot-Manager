@@ -1052,9 +1052,8 @@ body {
 .transaction-reason {
   color: var(--color-text-muted);
   font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  word-wrap: break-word;
+  word-break: break-word;
 }
 
 .transaction-timestamp {
