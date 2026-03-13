@@ -49,7 +49,7 @@ function classCss(className) {
   return CLASS_CSS[className.toLowerCase()] || '';
 }
 
-// ── All 13 WoW gear slots (display order) ───────────────────────
+// ── All 15 WoW gear slots (display order) ───────────────────────
 const GEAR_SLOTS = [
   'Head',      'Neck',
   'Shoulder',  'Back',
@@ -58,6 +58,7 @@ const GEAR_SLOTS = [
   'Legs',      'Feet',
   'Ring',      'Trinket',
   'Main Hand', 'Off Hand',
+  'Tier',      'Ranged',
 ];
 
 // ================================================================

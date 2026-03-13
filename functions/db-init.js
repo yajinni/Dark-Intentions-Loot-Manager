@@ -90,7 +90,9 @@ async function initializeDatabase(env) {
       ('Ring',      0),
       ('Trinket',   0),
       ('Main Hand', 0),
-      ('Off Hand',  0);
+      ('Off Hand',  0),
+      ('Tier',      0),
+      ('Ranged',    0);
   `;
 
   // Execute each statement separately
