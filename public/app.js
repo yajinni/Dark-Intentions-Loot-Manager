@@ -333,6 +333,16 @@ async function openTransactionHistoryModal(characterName) {
   modal.classList.remove('hidden');
 }
 
+function formatReasonWithLinks(reason) {
+  if (!reason) return '(no reason)';
+
+  // Convert WoWhead URLs to clickable links
+  // Format: https://www.wowhead.com/item=12345 or similar
+  const wowheadUrlRegex = /(https:\/\/www\.wowhead\.com\/\S+)/g;
+  const html = escHtml(reason).replace(wowheadUrlRegex, '<a href="$1" target="_blank" class="wowhead-link">$1</a>');
+  return html;
+}
+
 function populateHistoryModal(transactions, characterName) {
   const titleEl = $('#transaction-history-title');
   const listEl = $('#transaction-list');
@@ -349,6 +359,7 @@ function populateHistoryModal(transactions, characterName) {
     const badgeClass = t.type === 'ep' ? 'ep' : 'gp';
     const formattedTime = new Date(t.timestamp).toLocaleString();
     const amount = t.amount ?? 0;
+    const reasonHTML = formatReasonWithLinks(t.reason);
 
     return `
       <div class="transaction-item" data-transaction-id="${t.id}" data-transaction-type="${t.type}">
@@ -357,7 +368,7 @@ function populateHistoryModal(transactions, characterName) {
           <span class="transaction-type-badge ${badgeClass}">${badge}</span>
           <div class="transaction-details">
             <span class="transaction-amount">${amount > 0 ? '+' : ''}${amount}</span>
-            <span class="transaction-reason">${escHtml(t.reason || '(no reason)')}</span>
+            <span class="transaction-reason">${reasonHTML}</span>
             <span class="transaction-timestamp">${formattedTime}</span>
           </div>
         </div>
@@ -391,6 +402,11 @@ function populateHistoryModal(transactions, characterName) {
       deleteTransaction(id, type, characterName);
     });
   });
+
+  // Refresh WoWhead tooltips for dynamically added content
+  if (window.__WowheadPower) {
+    window.__WowheadPower.refreshLinks();
+  }
 }
 
 function openEditTransactionModal(transactionId, transactionType, transaction, characterName) {
