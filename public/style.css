@@ -620,6 +620,7 @@ body {
   transition: transform 0.18s;
   font-size: 12px;
   color: var(--color-gold);
+  margin-top: -2px;
 }
 
 .collapsible-header.collapsed {
