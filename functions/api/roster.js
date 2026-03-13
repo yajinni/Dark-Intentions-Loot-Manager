@@ -126,11 +126,22 @@ export async function onRequest({ request, env }) {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
+      // Also prepare GP log insert for initial values
+      const gpLogStmt = env.DB.prepare(`
+        INSERT INTO gp_log (name, gp, reason, timestamp)
+        VALUES (?, ?, ?, ?)
+      `);
+
+      const now = new Date().toISOString();
+
       for (const c of chars) {
+        const charName = c.name ?? 'Unknown';
+
+        // Insert into roster
         await stmt
           .bind(
             c.id             ?? c.character_id          ?? null,
-            c.name           ?? 'Unknown',
+            charName,
             c.realm          ?? c.realm_slug             ?? null,
             c.class          ?? c.character_class         ?? null,
             c.spec           ?? c.active_spec_name        ?? null,
@@ -141,13 +152,22 @@ export async function onRequest({ request, env }) {
             c.status         ?? (c.is_inactive ? 'inactive' : 'active')
           )
           .run();
+
+        // Add initial GP log entry for this character
+        try {
+          await gpLogStmt
+            .bind(charName, defaultGp, 'Initial GP on roster sync', now)
+            .run();
+        } catch (e) {
+          // gp_log table may not exist yet; ignore
+        }
       }
 
       return new Response(
         JSON.stringify({
           success: true,
           count: chars.length,
-          message: `Synced ${chars.length} characters from WoWAudit`,
+          message: `Synced ${chars.length} characters from WoWAudit with ${defaultGp} GP each`,
         }),
         { headers }
       );
