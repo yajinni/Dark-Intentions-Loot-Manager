@@ -623,12 +623,14 @@ body {
   color: var(--color-gold);
 }
 
-.collapsible-section:has(.collapsible-header.collapsed) {
-  border: none;
+.collapsible-header.collapsed {
+  border-bottom: 0 !important;
 }
 
-.collapsible-header.collapsed {
-  border-bottom: none !important;
+.collapsible-section:has(.collapsible-header.collapsed) {
+  border-top: none;
+  border-right: none;
+  border-left: none;
 }
 
 .collapsible-header.collapsed .collapse-icon {
