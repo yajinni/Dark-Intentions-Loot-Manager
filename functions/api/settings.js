@@ -14,16 +14,19 @@ export async function onRequest({ request, env }) {
   // ── GET ─────────────────────────────────────────────────────
   if (request.method === 'GET') {
     try {
-      const apiKeyRow = await env.DB
-        .prepare("SELECT value FROM settings WHERE key = 'wowaudit_api_key'")
-        .first();
-      const defaultGpRow = await env.DB
-        .prepare("SELECT value FROM settings WHERE key = 'default_gp'")
-        .first();
+      const rows = await env.DB
+        .prepare("SELECT key, value FROM settings")
+        .all();
+
+      const settingsMap = {};
+      for (const row of rows.results) {
+        settingsMap[row.key] = row.value;
+      }
+
       return new Response(
         JSON.stringify({
-          api_key: apiKeyRow?.value ?? '',
-          default_gp: defaultGpRow?.value ?? ''
+          api_key: settingsMap['wowaudit_api_key'] ?? '',
+          default_gp: settingsMap['default_gp'] ?? ''
         }),
         { headers }
       );
