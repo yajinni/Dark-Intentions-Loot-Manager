@@ -22,7 +22,10 @@ export async function onRequest({ request, env }) {
         .first();
 
       const apiKey = settingsRow?.value;
+      console.log('DEBUG: API Key from DB:', apiKey ? 'Found (length: ' + apiKey.length + ')' : 'NOT FOUND');
+
       if (!apiKey) {
+        console.error('DEBUG: No API key in settings table');
         return new Response(
           JSON.stringify({ error: 'WoWAudit API key not configured' }),
           { status: 400, headers }
@@ -50,9 +53,17 @@ export async function onRequest({ request, env }) {
       });
 
       if (!raidResponse.ok) {
+        let errorDetail = '';
+        try {
+          const errData = await raidResponse.json();
+          errorDetail = errData.message || errData.error || '';
+        } catch (e) {
+          errorDetail = await raidResponse.text();
+        }
+        console.error(`WoWAudit API ${raidResponse.status}: ${errorDetail}, week_code=${weekCode}`);
         return new Response(
-          JSON.stringify({ error: `WoWAudit API error: ${raidResponse.status}` }),
-          { status: raidResponse.status, headers }
+          JSON.stringify({ error: `WoWAudit API error: ${raidResponse.status}${errorDetail ? ' - ' + errorDetail : ''}` }),
+          { status: 400, headers }
         );
       }
 

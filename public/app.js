@@ -204,12 +204,17 @@ async function switchTab(name) {
   clearUnsavedChanges();
 
   // Lazy-load tab data on first visit
+  // For attendance, always sync to get latest data
+  if (name === 'attendance') {
+    syncAttendance().catch(err => showMessage('attendance', 'error', `✗ Auto-sync failed: ${err.message}`));
+    return;
+  }
+
   if (!tabLoaded[name]) {
     tabLoaded[name] = true;
     if (name === 'roster') loadRoster();
     if (name === 'loot')   loadLootHistory();
     if (name === 'epgp')   loadEpgp();
-    if (name === 'attendance') loadAttendance(getCurrentWeekCode());
     if (name === 'admin')  loadAdminSettings();
   }
 }
@@ -1549,9 +1554,10 @@ $('#sync-loot-btn').addEventListener('click', async () => {
 //  ATTENDANCE TAB — Fetch and Display Raid Signups
 // ================================================================
 function getWeekCodeForDate(date) {
-  // March 16, 2026 = week code 2538856
+  // March 16, 2026 (Monday) = week code 2538856
   // Each week after that increases by 1
   const baseDate = new Date('2026-03-16');
+  baseDate.setHours(0, 0, 0, 0);
   const baseWeekCode = 2538856;
   const timeDiff = date.getTime() - baseDate.getTime();
   const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
@@ -1559,13 +1565,35 @@ function getWeekCodeForDate(date) {
   return baseWeekCode + weeksDiff;
 }
 
-function getCurrentWeekCode() {
-  return getWeekCodeForDate(new Date());
+function getUpcomingWeekCode() {
+  // Get the week code for the upcoming Monday
+  // If today is Monday-Sunday, this returns the week starting on the upcoming Monday
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+  let daysUntilMonday;
+  if (dayOfWeek === 1) {
+    // Today is Monday - upcoming week is this week
+    daysUntilMonday = 0;
+  } else if (dayOfWeek === 0) {
+    // Today is Sunday - Monday is tomorrow
+    daysUntilMonday = 1;
+  } else {
+    // Today is Tue-Sat - Monday is next week
+    daysUntilMonday = 8 - dayOfWeek;
+  }
+
+  const upcomingMonday = new Date(today);
+  upcomingMonday.setDate(upcomingMonday.getDate() + daysUntilMonday);
+
+  return getWeekCodeForDate(upcomingMonday);
 }
 
 async function syncAttendance() {
   try {
-    const weekCode = getCurrentWeekCode();
+    const weekCode = getUpcomingWeekCode();
     const res = await fetch(`/api/attendance-sync?week_code=${weekCode}`, { method: 'POST' });
     const contentType = res.headers.get('content-type') || '';
     if (!contentType.includes('application/json')) {
