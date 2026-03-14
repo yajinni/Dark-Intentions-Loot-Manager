@@ -598,6 +598,12 @@ body {
   accent-color: var(--color-gold);
 }
 
+.bonus-ep-input {
+  flex: 0 0 auto !important;
+  width: 120px !important;
+  min-width: 120px !important;
+}
+
 .gear-input {
   width: 96px;
   background: var(--bg-input);

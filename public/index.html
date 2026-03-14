@@ -154,14 +154,14 @@
               <table class="data-table on-time-bonus-table">
                 <thead>
                   <tr>
-                    <th style="width: 40px;"><input type="checkbox" id="select-all-bonus-checkbox"></th>
-                    <th>Character</th>
                     <th style="width: 40px;"></th>
-                    <th>Character</th>
+                    <th></th>
                     <th style="width: 40px;"></th>
-                    <th>Character</th>
+                    <th></th>
                     <th style="width: 40px;"></th>
-                    <th>Character</th>
+                    <th></th>
+                    <th style="width: 40px;"></th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody id="on-time-bonus-tbody">
@@ -169,7 +169,10 @@
                 </tbody>
               </table>
               <div class="epgp-log-form">
-                <input type="number" id="bonus-ep-input" class="form-input" placeholder="EP Points" min="0">
+                <button id="select-everyone-btn" class="btn btn-secondary">
+                  <span class="btn-icon">✓</span> Select Everyone
+                </button>
+                <input type="number" id="bonus-ep-input" class="form-input bonus-ep-input" placeholder="EP Points" min="0">
                 <button id="give-bonus-btn" class="btn btn-primary">
                   <span class="btn-icon">⭐</span> Give Selected Members On Time Bonus
                 </button>

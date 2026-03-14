@@ -1024,12 +1024,20 @@ $('#edit-gp-btn').addEventListener('click', async () => {
   }
 });
 
-// On Time Bonus - Select All Checkbox
-$('#select-all-bonus-checkbox').addEventListener('change', (e) => {
-  const isChecked = e.target.checked;
+// On Time Bonus - Select/Unselect Everyone Button
+$('#select-everyone-btn').addEventListener('click', () => {
+  const btn = $('#select-everyone-btn');
+  const isSelecting = btn.textContent.includes('Select');
+
   $$('.bonus-checkbox').forEach(checkbox => {
-    checkbox.checked = isChecked;
+    checkbox.checked = isSelecting;
   });
+
+  if (isSelecting) {
+    btn.innerHTML = '<span class="btn-icon">✕</span> Unselect Everyone';
+  } else {
+    btn.innerHTML = '<span class="btn-icon">✓</span> Select Everyone';
+  }
 });
 
 // On Time Bonus - Give Bonus Button
@@ -1074,7 +1082,7 @@ $('#give-bonus-btn').addEventListener('click', async () => {
       showMessage('epgp', 'success', `✓ On Time Bonus awarded to ${selectedCharacters.length} member(s)`);
       $('#bonus-ep-input').value = '';
       $$('.bonus-checkbox').forEach(checkbox => { checkbox.checked = false; });
-      $('#select-all-bonus-checkbox').checked = false;
+      $('#select-everyone-btn').innerHTML = '<span class="btn-icon">✓</span> Select Everyone';
       await loadRoster();
       clearUnsavedChanges();
     } else {
