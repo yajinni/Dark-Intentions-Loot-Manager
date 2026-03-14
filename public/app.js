@@ -1040,13 +1040,19 @@ $('#select-everyone-btn').addEventListener('click', () => {
   }
 });
 
-// On Time Bonus - Give Bonus Button
+// Edit EP - Give Points Button
 $('#give-bonus-btn').addEventListener('click', async () => {
   const btn = $('#give-bonus-btn');
   const bonusEp = parseInt($('#bonus-ep-input').value, 10);
+  const reason = $('#bonus-reason-input').value.trim();
 
   if (isNaN(bonusEp) || bonusEp <= 0) {
     showMessage('epgp', 'error', '✗ Please enter a valid EP amount');
+    return;
+  }
+
+  if (!reason) {
+    showMessage('epgp', 'error', '✗ Please enter a reason');
     return;
   }
 
@@ -1069,7 +1075,7 @@ $('#give-bonus-btn').addEventListener('click', async () => {
         body: JSON.stringify({
           name,
           ep: bonusEp,
-          reason: 'On Time Bonus',
+          reason: reason,
           timestamp: new Date().toISOString(),
         }),
       }).then(r => r.json())
@@ -1079,14 +1085,15 @@ $('#give-bonus-btn').addEventListener('click', async () => {
     const allSuccess = results.every(r => r.success);
 
     if (allSuccess) {
-      showMessage('epgp', 'success', `✓ On Time Bonus awarded to ${selectedCharacters.length} member(s)`);
+      showMessage('epgp', 'success', `✓ EP awarded to ${selectedCharacters.length} member(s)`);
       $('#bonus-ep-input').value = '';
+      $('#bonus-reason-input').value = '';
       $$('.bonus-checkbox').forEach(checkbox => { checkbox.checked = false; });
       $('#select-everyone-btn').innerHTML = '<span class="btn-icon">✓</span> Select Everyone';
       await loadRoster();
       clearUnsavedChanges();
     } else {
-      showMessage('epgp', 'error', '✗ Some members failed to receive bonus');
+      showMessage('epgp', 'error', '✗ Some members failed to receive points');
     }
   } catch (err) {
     showMessage('epgp', 'error', `✗ Network error: ${err.message}`);
