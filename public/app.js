@@ -797,18 +797,34 @@ function populateOnTimeBonus() {
       .filter(c => c.rank && c.rank.toLowerCase() !== 'social')
       .sort((a, b) => a.name.localeCompare(b.name));
 
-    // Create 4-column layout (2 character pairs per row)
-    for (let i = 0; i < characters.length; i += 2) {
-      const leftChar = characters[i];
-      const rightChar = characters[i + 1];
+    // Create 8-column layout (4 characters per row)
+    for (let i = 0; i < characters.length; i += 4) {
+      const char1 = characters[i];
+      const char2 = characters[i + 1];
+      const char3 = characters[i + 2];
+      const char4 = characters[i + 3];
 
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td><input type="checkbox" class="bonus-checkbox" value="${leftChar.name}"></td>
-        <td>${escHtml(leftChar.name)}</td>
-        ${rightChar ? `
-          <td><input type="checkbox" class="bonus-checkbox" value="${rightChar.name}"></td>
-          <td>${escHtml(rightChar.name)}</td>
+        <td><input type="checkbox" class="bonus-checkbox" value="${char1.name}"></td>
+        <td>${escHtml(char1.name)}</td>
+        ${char2 ? `
+          <td><input type="checkbox" class="bonus-checkbox" value="${char2.name}"></td>
+          <td>${escHtml(char2.name)}</td>
+        ` : `
+          <td></td>
+          <td></td>
+        `}
+        ${char3 ? `
+          <td><input type="checkbox" class="bonus-checkbox" value="${char3.name}"></td>
+          <td>${escHtml(char3.name)}</td>
+        ` : `
+          <td></td>
+          <td></td>
+        `}
+        ${char4 ? `
+          <td><input type="checkbox" class="bonus-checkbox" value="${char4.name}"></td>
+          <td>${escHtml(char4.name)}</td>
         ` : `
           <td></td>
           <td></td>

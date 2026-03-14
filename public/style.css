@@ -579,11 +579,13 @@ body {
 }
 
 .on-time-bonus-table {
-  max-width: 800px;
+  max-width: 1200px;
 }
 
 .on-time-bonus-table td:nth-child(1),
-.on-time-bonus-table td:nth-child(3) {
+.on-time-bonus-table td:nth-child(3),
+.on-time-bonus-table td:nth-child(5),
+.on-time-bonus-table td:nth-child(7) {
   text-align: center;
   padding: 8px;
   width: 40px;
