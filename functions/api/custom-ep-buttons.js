@@ -1,4 +1,5 @@
 import { ensureTablesExist } from '../db-init.js';
+import { logEvent } from '../utils/logger.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -46,10 +47,13 @@ export async function onRequest(context) {
         .bind(name, description || '', parseInt(ep))
         .run();
 
+      await logEvent(env, 'success', 'System', `Created custom EP button: ${name} (${ep} EP)`);
+
       return new Response(JSON.stringify({ success: true }), {
         headers: { 'Content-Type': 'application/json' },
       });
     } catch (err) {
+      await logEvent(env, 'error', 'API', `Failed to create custom EP button: ${err.message}`);
       console.error('Error creating custom EP button:', err);
       return new Response(
         JSON.stringify({ error: err.message || 'Failed to create button' }),

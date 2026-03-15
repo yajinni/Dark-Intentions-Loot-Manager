@@ -3,6 +3,7 @@
  * POST — adds an entry to the gp_log table
  */
 import { ensureTablesExist } from '../db-init.js';
+import { logEvent } from '../utils/logger.js';
 
 export async function onRequest({ request, env }) {
   const headers = { 'Content-Type': 'application/json' };
@@ -29,11 +30,14 @@ export async function onRequest({ request, env }) {
         .bind(name, gp, reason || '', timestamp || new Date().toISOString())
         .run();
 
+      await logEvent(env, 'success', 'EPGP', `Added ${gp} GP to ${name}`, { reason, timestamp });
+
       return new Response(
         JSON.stringify({ success: true, message: 'GP entry added successfully' }),
         { headers }
       );
     } catch (err) {
+      await logEvent(env, 'error', 'API', `Failed to add GP to ${name || 'Unknown'}`, { error: err.message });
       return new Response(
         JSON.stringify({ error: err.message }),
         { status: 500, headers }

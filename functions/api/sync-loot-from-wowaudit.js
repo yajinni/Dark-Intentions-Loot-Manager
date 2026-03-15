@@ -10,6 +10,7 @@
  * 5. Parse response and store in loot_history table
  */
 import { ensureTablesExist } from '../db-init.js';
+import { logEvent } from '../utils/logger.js';
 
 export async function onRequest({ request, env }) {
   const headers = {
@@ -37,6 +38,7 @@ export async function onRequest({ request, env }) {
         .first();
 
       if (!settingsResult || !settingsResult.value) {
+        await logEvent(env, 'error', 'System', 'Attempted Loot Sync but WoWAudit API key is missing.');
         return new Response(
           JSON.stringify({ error: 'WoWAudit API key not configured' }),
           { status: 400, headers }
@@ -55,6 +57,7 @@ export async function onRequest({ request, env }) {
       });
 
       if (!periodResponse.ok) {
+        await logEvent(env, 'error', 'API', `Loot Sync: WoWAudit period API error ${periodResponse.status}`);
         return new Response(
           JSON.stringify({ error: `WoWAudit period API error: ${periodResponse.status}` }),
           { status: periodResponse.status, headers }
@@ -174,6 +177,8 @@ export async function onRequest({ request, env }) {
         }
       }
 
+      await logEvent(env, 'success', 'Loot', `Synced ${insertedCount} loot items from WoWAudit`, { periodId, insertedCount });
+
       return new Response(
         JSON.stringify({
           success: true,
@@ -184,6 +189,7 @@ export async function onRequest({ request, env }) {
         { headers }
       );
     } catch (err) {
+      await logEvent(env, 'error', 'API', `Loot sync failed: ${err.message}`);
       return new Response(
         JSON.stringify({ error: err.message }),
         { status: 500, headers }

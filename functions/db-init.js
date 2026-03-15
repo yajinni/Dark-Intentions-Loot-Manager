@@ -9,10 +9,10 @@
  */
 export async function ensureTablesExist(env) {
   try {
-    // Check if the newest table exists (loot_history)
+    // Check if the newest table exists (signups)
     // If it doesn't, run initialization — all statements use IF NOT EXISTS so it's safe
     const result = await env.DB
-      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='loot_history'")
+      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='signups'")
       .first();
 
     if (!result) {
@@ -109,6 +109,17 @@ async function initializeDatabase(env) {
       updated_at              TEXT DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS signups (
+      id             INTEGER PRIMARY KEY AUTOINCREMENT,
+      raid_id        INTEGER NOT NULL,
+      date           TEXT NOT NULL,
+      character_name TEXT NOT NULL,
+      class          TEXT,
+      status         TEXT,
+      ep_awarded     BOOLEAN DEFAULT 0,
+      UNIQUE(raid_id, character_name)
+    );
+
     INSERT OR REPLACE INTO settings (key, value)
     VALUES
       ('wowaudit_api_key', '62581957225650bd6cd7902ea6f45b3d175a372c524083d3eb30696260bc672d'),
@@ -131,6 +142,15 @@ async function initializeDatabase(env) {
       ('Off Hand',  0),
       ('Tier',      0),
       ('Ranged',    0);
+
+    CREATE TABLE IF NOT EXISTS system_logs (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      timestamp  TEXT DEFAULT (datetime('now')),
+      level      TEXT DEFAULT 'info',
+      category   TEXT NOT NULL,
+      message    TEXT NOT NULL,
+      details    TEXT
+    );
   `;
 
   // Execute each statement separately

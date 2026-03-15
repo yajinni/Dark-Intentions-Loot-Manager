@@ -204,12 +204,24 @@ async function switchTab(name) {
   clearUnsavedChanges();
 
   // Lazy-load tab data on first visit
+  // For signups, always load to get latest data
+  if (name === 'signups') {
+    loadSignups().catch(err => showMessage('signups', 'error', `✗ Failed to load signups: ${err.message}`));
+    return;
+  }
+
   if (!tabLoaded[name]) {
     tabLoaded[name] = true;
     if (name === 'roster') loadRoster();
     if (name === 'loot')   loadLootHistory();
     if (name === 'epgp')   loadEpgp();
     if (name === 'admin')  loadAdminSettings();
+    if (name === 'logs')   loadLogs();
+  }
+  // Always force reload logs
+  if (name === 'logs') {
+    tabLoaded.logs = false;
+    loadLogs();
   }
 }
 
@@ -745,7 +757,8 @@ async function loadEpgp() {
 
     if (data.error) throw new Error(data.error);
     renderEpgpTable(data.gear_values || []);
-    populateRosterDropdowns();
+    populateOnTimeBonus();
+    populateGpBulk();
     await loadCustomEpButtons();
   } catch (err) {
     showMessage('epgp', 'error', `✗ Error loading EPGP data: ${err.message}`);
@@ -753,31 +766,97 @@ async function loadEpgp() {
   }
 }
 
-function populateRosterDropdowns() {
-  const epSelect = $('#ep-name-select');
-  const gpSelect = $('#gp-name-select');
+function populateOnTimeBonus() {
+  const tbody = $('#on-time-bonus-tbody');
+  tbody.innerHTML = '';
 
-  // Clear existing options
-  epSelect.innerHTML = '<option value="">— Select a character —</option>';
-  gpSelect.innerHTML = '<option value="">— Select a character —</option>';
-
-  // Add roster members, sorted alphabetically, excluding Social rank
   if (rosterData && rosterData.length > 0) {
     const characters = rosterData
       .filter(c => c.rank && c.rank.toLowerCase() !== 'social')
       .sort((a, b) => a.name.localeCompare(b.name));
 
-    characters.forEach(member => {
-      const epOption = document.createElement('option');
-      epOption.value = member.name;
-      epOption.textContent = member.name;
-      epSelect.appendChild(epOption);
+    // Create 8-column layout (4 characters per row)
+    for (let i = 0; i < characters.length; i += 4) {
+      const char1 = characters[i];
+      const char2 = characters[i + 1];
+      const char3 = characters[i + 2];
+      const char4 = characters[i + 3];
 
-      const gpOption = document.createElement('option');
-      gpOption.value = member.name;
-      gpOption.textContent = member.name;
-      gpSelect.appendChild(gpOption);
-    });
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><input type="checkbox" class="bonus-checkbox" value="${char1.name}"></td>
+        <td>${escHtml(char1.name)}</td>
+        ${char2 ? `
+          <td><input type="checkbox" class="bonus-checkbox" value="${char2.name}"></td>
+          <td>${escHtml(char2.name)}</td>
+        ` : `
+          <td></td>
+          <td></td>
+        `}
+        ${char3 ? `
+          <td><input type="checkbox" class="bonus-checkbox" value="${char3.name}"></td>
+          <td>${escHtml(char3.name)}</td>
+        ` : `
+          <td></td>
+          <td></td>
+        `}
+        ${char4 ? `
+          <td><input type="checkbox" class="bonus-checkbox" value="${char4.name}"></td>
+          <td>${escHtml(char4.name)}</td>
+        ` : `
+          <td></td>
+          <td></td>
+        `}
+      `;
+      tbody.appendChild(row);
+    }
+  }
+}
+
+function populateGpBulk() {
+  const tbody = $('#edit-gp-bulk-tbody');
+  tbody.innerHTML = '';
+
+  if (rosterData && rosterData.length > 0) {
+    const characters = rosterData
+      .filter(c => c.rank && c.rank.toLowerCase() !== 'social')
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    // Create 8-column layout (4 characters per row)
+    for (let i = 0; i < characters.length; i += 4) {
+      const char1 = characters[i];
+      const char2 = characters[i + 1];
+      const char3 = characters[i + 2];
+      const char4 = characters[i + 3];
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><input type="checkbox" class="gp-bulk-checkbox" value="${char1.name}"></td>
+        <td>${escHtml(char1.name)}</td>
+        ${char2 ? `
+          <td><input type="checkbox" class="gp-bulk-checkbox" value="${char2.name}"></td>
+          <td>${escHtml(char2.name)}</td>
+        ` : `
+          <td></td>
+          <td></td>
+        `}
+        ${char3 ? `
+          <td><input type="checkbox" class="gp-bulk-checkbox" value="${char3.name}"></td>
+          <td>${escHtml(char3.name)}</td>
+        ` : `
+          <td></td>
+          <td></td>
+        `}
+        ${char4 ? `
+          <td><input type="checkbox" class="gp-bulk-checkbox" value="${char4.name}"></td>
+          <td>${escHtml(char4.name)}</td>
+        ` : `
+          <td></td>
+          <td></td>
+        `}
+      `;
+      tbody.appendChild(row);
+    }
   }
 }
 
@@ -862,48 +941,76 @@ $('#save-epgp-btn').addEventListener('click', async () => {
   }
 });
 
-// EP Log Button
-$('#edit-ep-btn').addEventListener('click', async () => {
-  const btn = $('#edit-ep-btn');
-  const name = $('#ep-name-select').value.trim();
-  const ep = parseInt($('#ep-value-input').value, 10);
-  const reason = $('#ep-reason-input').value.trim();
+// Edit EP - Select/Unselect Everyone Button
+$('#select-everyone-btn').addEventListener('click', () => {
+  const btn = $('#select-everyone-btn');
+  const isSelecting = btn.textContent.includes('Select');
 
-  if (!name) {
-    showMessage('epgp', 'error', '✗ Please select a character');
+  $$('.bonus-checkbox').forEach(checkbox => {
+    checkbox.checked = isSelecting;
+  });
+
+  if (isSelecting) {
+    btn.innerHTML = '<span class="btn-icon">✕</span> Unselect Everyone';
+  } else {
+    btn.innerHTML = '<span class="btn-icon">✓</span> Select Everyone';
+  }
+});
+
+// Edit EP - Give Points Button
+$('#give-bonus-btn').addEventListener('click', async () => {
+  const btn = $('#give-bonus-btn');
+  const bonusEp = parseInt($('#bonus-ep-input').value, 10);
+  const reason = $('#bonus-reason-input').value.trim();
+
+  if (isNaN(bonusEp) || bonusEp <= 0) {
+    showMessage('epgp', 'error', '✗ Please enter a valid EP amount');
     return;
   }
 
-  if (isNaN(ep)) {
-    showMessage('epgp', 'error', '✗ Please enter a valid EP value');
+  if (!reason) {
+    showMessage('epgp', 'error', '✗ Please enter a reason');
+    return;
+  }
+
+  const selectedCharacters = Array.from($$('.bonus-checkbox:checked'))
+    .map(checkbox => checkbox.value);
+
+  if (selectedCharacters.length === 0) {
+    showMessage('epgp', 'error', '✗ Please select at least one character');
     return;
   }
 
   btn.disabled = true;
 
   try {
-    const res = await fetch('/api/ep-log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name,
-        ep,
-        reason,
-        timestamp: new Date().toISOString(),
-      }),
-    });
-    const data = await res.json();
+    // Award EP to each selected character
+    const promises = selectedCharacters.map(name =>
+      fetch('/api/ep-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          ep: bonusEp,
+          reason: reason,
+          timestamp: new Date().toISOString(),
+        }),
+      }).then(r => r.json())
+    );
 
-    if (data.success) {
-      showMessage('epgp', 'success', `✓ ${data.message}`);
-      $('#ep-name-select').value = '';
-      $('#ep-value-input').value = '';
-      $('#ep-reason-input').value = '';
-      // Reload roster to update PR values
+    const results = await Promise.all(promises);
+    const allSuccess = results.every(r => r.success);
+
+    if (allSuccess) {
+      showMessage('epgp', 'success', `✓ EP awarded to ${selectedCharacters.length} member(s)`);
+      $('#bonus-ep-input').value = '';
+      $('#bonus-reason-input').value = '';
+      $$('.bonus-checkbox').forEach(checkbox => { checkbox.checked = false; });
+      $('#select-everyone-btn').innerHTML = '<span class="btn-icon">✓</span> Select Everyone';
       await loadRoster();
       clearUnsavedChanges();
     } else {
-      showMessage('epgp', 'error', `✗ ${data.error || 'Save failed'}`);
+      showMessage('epgp', 'error', '✗ Some members failed to receive points');
     }
   } catch (err) {
     showMessage('epgp', 'error', `✗ Network error: ${err.message}`);
@@ -912,56 +1019,76 @@ $('#edit-ep-btn').addEventListener('click', async () => {
   }
 });
 
-// GP Log Button
-$('#edit-gp-btn').addEventListener('click', async () => {
-  const btn = $('#edit-gp-btn');
-  const name = $('#gp-name-select').value.trim();
-  const gp = parseInt($('#gp-value-input').value, 10);
-  const itemId = $('#gp-item-id-input').value.trim();
-  let reason = $('#gp-reason-input').value.trim();
+// Edit GP - Select/Unselect Everyone Button
+$('#select-everyone-gp-btn').addEventListener('click', () => {
+  const btn = $('#select-everyone-gp-btn');
+  const isSelecting = btn.textContent.includes('Select');
 
-  if (!name) {
-    showMessage('epgp', 'error', '✗ Please select a character');
+  $$('.gp-bulk-checkbox').forEach(checkbox => {
+    checkbox.checked = isSelecting;
+  });
+
+  if (isSelecting) {
+    btn.innerHTML = '<span class="btn-icon">✕</span> Unselect Everyone';
+  } else {
+    btn.innerHTML = '<span class="btn-icon">✓</span> Select Everyone';
+  }
+});
+
+// Edit GP - Give Points Button
+$('#give-gp-btn').addEventListener('click', async () => {
+  const btn = $('#give-gp-btn');
+  const gpAmount = parseInt($('#bulk-gp-input').value, 10);
+  const reason = $('#bulk-gp-reason-input').value.trim();
+
+  if (isNaN(gpAmount) || gpAmount <= 0) {
+    showMessage('epgp', 'error', '✗ Please enter a valid GP amount');
     return;
   }
 
-  if (isNaN(gp)) {
-    showMessage('epgp', 'error', '✗ Please enter a valid GP value');
+  if (!reason) {
+    showMessage('epgp', 'error', '✗ Please enter a reason');
     return;
   }
 
-  // If item ID is provided, prepend the WoWhead URL to the reason
-  if (itemId) {
-    const wowheadUrl = `https://www.wowhead.com/item=${itemId}`;
-    reason = wowheadUrl + (reason ? ` - ${reason}` : '');
+  const selectedCharacters = Array.from($$('.gp-bulk-checkbox:checked'))
+    .map(checkbox => checkbox.value);
+
+  if (selectedCharacters.length === 0) {
+    showMessage('epgp', 'error', '✗ Please select at least one character');
+    return;
   }
 
   btn.disabled = true;
 
   try {
-    const res = await fetch('/api/gp-log', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name,
-        gp,
-        reason,
-        timestamp: new Date().toISOString(),
-      }),
-    });
-    const data = await res.json();
+    // Award GP to each selected character
+    const promises = selectedCharacters.map(name =>
+      fetch('/api/gp-log', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          gp: gpAmount,
+          reason: reason,
+          timestamp: new Date().toISOString(),
+        }),
+      }).then(r => r.json())
+    );
 
-    if (data.success) {
-      showMessage('epgp', 'success', `✓ ${data.message}`);
-      $('#gp-name-select').value = '';
-      $('#gp-value-input').value = '';
-      $('#gp-item-id-input').value = '';
-      $('#gp-reason-input').value = '';
-      // Reload roster to update PR values
+    const results = await Promise.all(promises);
+    const allSuccess = results.every(r => r.success);
+
+    if (allSuccess) {
+      showMessage('epgp', 'success', `✓ GP awarded to ${selectedCharacters.length} member(s)`);
+      $('#bulk-gp-input').value = '';
+      $('#bulk-gp-reason-input').value = '';
+      $$('.gp-bulk-checkbox').forEach(checkbox => { checkbox.checked = false; });
+      $('#select-everyone-gp-btn').innerHTML = '<span class="btn-icon">✓</span> Select Everyone';
       await loadRoster();
       clearUnsavedChanges();
     } else {
-      showMessage('epgp', 'error', `✗ ${data.error || 'Save failed'}`);
+      showMessage('epgp', 'error', '✗ Some members failed to receive points');
     }
   } catch (err) {
     showMessage('epgp', 'error', `✗ Network error: ${err.message}`);
@@ -982,6 +1109,12 @@ async function loadAdminSettings() {
     }
     if (data.default_gp) {
       $('#default-gp-input').value = data.default_gp;
+    }
+    if (data.enable_logging) {
+      const isEnabled = data.enable_logging === 'true';
+      $('#enable-logging-toggle').checked = isEnabled;
+      $('#enable-logging-label').textContent = isEnabled ? 'Enabled' : 'Disabled';
+      $('#enable-logging-label').style.color = isEnabled ? '#4caf73' : '#e05555';
     }
   } catch {
     // Settings may just not be set yet; fail silently
@@ -1053,6 +1186,41 @@ $('#save-default-gp-btn').addEventListener('click', async () => {
 
     if (data.success) {
       showMessage('admin', 'success', `✓ Default GP updated to ${defaultGp}`);
+      clearUnsavedChanges();
+    } else {
+      showMessage('admin', 'error', `✗ ${data.error || 'Save failed'}`);
+    }
+  } catch (err) {
+    showMessage('admin', 'error', `✗ Network error: ${err.message}`);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// Save enable logging setting
+$('#enable-logging-toggle').addEventListener('change', (e) => {
+  const isEnabled = e.target.checked;
+  $('#enable-logging-label').textContent = isEnabled ? 'Enabled' : 'Disabled';
+  $('#enable-logging-label').style.color = isEnabled ? '#4caf73' : '#e05555';
+  markUnsavedChanges();
+});
+
+$('#save-logging-btn').addEventListener('click', async () => {
+  const btn = $('#save-logging-btn');
+  const isEnabled = $('#enable-logging-toggle').checked;
+
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'enable_logging', value: String(isEnabled) }),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showMessage('admin', 'success', `✓ System logging ${isEnabled ? 'enabled' : 'disabled'}`);
       clearUnsavedChanges();
     } else {
       showMessage('admin', 'error', `✗ ${data.error || 'Save failed'}`);
@@ -1545,12 +1713,221 @@ $('#sync-loot-btn').addEventListener('click', async () => {
 });
 
 // ================================================================
+//  SIGN UPS TAB — Fetch and Display Raid Signups
+// ================================================================
+
+async function loadSignups() {
+  const container = $('#signups-container');
+  if (!container) return;
+  
+  container.innerHTML = '<div class="empty-row text-center" style="padding: 20px;">Loading sign ups...</div>';
+
+  try {
+    const res = await fetch(`/api/signups`);
+    const data = await res.json();
+    
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to load signups');
+    }
+    
+    const signups = data.signups || [];
+    renderSignups(signups);
+  } catch (err) {
+    showMessage('signups', 'error', `✗ Error loading signups: ${err.message}`);
+    container.innerHTML = `<div class="empty-row text-center" style="padding: 20px; color: #ff4444;">Error: ${escHtml(err.message)}</div>`;
+  }
+}
+
+function getSignupStatusClass(status) {
+  if (!status || status === 'Unknown') return 'status-unknown';
+  if (status === 'Present' || status === 'Accepted') return 'status-present';
+  if (status === 'Absent' || status === 'Declined') return 'status-absent';
+  if (status === 'Tentative' || status === 'Late') return 'status-tentative';
+  return 'status-tentative';
+}
+
+function renderSignups(signups) {
+  const container = $('#signups-container');
+  if (!container) return;
+
+  if (signups.length === 0) {
+    container.innerHTML = '<div class="empty-row text-center" style="padding: 20px;">No sign ups data available yet.</div>';
+    return;
+  }
+
+  // Group by Date
+  const grouped = {};
+  signups.forEach(s => {
+    if (!grouped[s.date]) {
+      grouped[s.date] = [];
+    }
+    grouped[s.date].push(s);
+  });
+
+  // Sort dates descending
+  const dates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+
+  let html = '';
+  dates.forEach((date, i) => {
+    const records = grouped[date];
+    // Start expanded for the most recent date, collapsed for others
+    const collapsedClass = i === 0 ? '' : 'collapsed';
+    const displayStyle = i === 0 ? '' : 'style="display: none;"';
+
+    html += `
+      <div class="collapsible-section" style="margin-bottom: 10px;">
+        <button class="collapsible-header ${collapsedClass}" data-target="signups-${date}" style="width: 100%; text-align: left; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; color: #e1e1e6;">
+          <span class="collapse-icon">${i === 0 ? '▼' : '▶'}</span>
+          <strong style="margin-left: 10px; font-size: 1.1em;">Raid Date: ${date} <span style="font-weight: normal; font-size: 0.9em; color: #aaa;">(${records.length} Signups)</span></strong>
+        </button>
+        <div id="signups-${date}" class="collapsible-content" ${displayStyle}>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Character</th>
+                <th>Class</th>
+                <th>Status</th>
+                <th>Bonus Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${records.map(r => {
+                const statusClass = getSignupStatusClass(r.status);
+                const epBadge = r.ep_awarded 
+                  ? '<span style="color: #4CAF50; font-size: 0.9em;">✔️ +1 EP Awarded</span>' 
+                  : (r.status !== 'Unknown' ? '<span style="color: #FFC107; font-size: 0.9em;">Pending</span>' : '<span style="color: #888; font-size: 0.9em;">N/A</span>');
+                const classCssName = classCss(r.class);
+                return `
+                  <tr>
+                    <td><strong class="${classCssName}">${escHtml(r.character_name)}</strong></td>
+                    <td class="${classCssName}">${escHtml(r.class || '—')}</td>
+                    <td class="${statusClass}">${escHtml(r.status)}</td>
+                    <td>${epBadge}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  // Add click listeners to new collapsible headers
+  container.querySelectorAll('.collapsible-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const isCollapsed = header.classList.contains('collapsed');
+      const targetId = header.getAttribute('data-target');
+      const targetContent = document.getElementById(targetId);
+      
+      if (isCollapsed) {
+        header.classList.remove('collapsed');
+        header.querySelector('.collapse-icon').textContent = '▼';
+        targetContent.style.display = 'block';
+      } else {
+        header.classList.add('collapsed');
+        header.querySelector('.collapse-icon').textContent = '▶';
+        targetContent.style.display = 'none';
+      }
+    });
+  });
+}
+
+
+
+// ================================================================
 //  COLLAPSIBLE SECTIONS
 // ================================================================
 $$('.collapsible-header').forEach(header => {
   header.addEventListener('click', () => {
     header.classList.toggle('collapsed');
   });
+});
+
+// ================================================================
+//  SYSTEM LOGS TAB
+// ================================================================
+let systemLogs = [];
+
+async function loadLogs() {
+  const tbody = $('#logs-tbody');
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="5" class="loading">Loading logs...</td></tr>';
+  
+  try {
+    const res = await fetch('/api/logs');
+    const data = await res.json();
+    if (data.success) {
+      systemLogs = data.logs || [];
+      renderLogs();
+    } else {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="5">Error: ${escHtml(data.error)}</td></tr>`;
+    }
+  } catch (err) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="5">Network Error: ${escHtml(err.message)}</td></tr>`;
+  }
+}
+
+function renderLogs() {
+  const tbody = $('#logs-tbody');
+  const filterCat = $('#log-category-filter').value;
+  
+  const filtered = filterCat === 'All' ? systemLogs : systemLogs.filter(L => L.category === filterCat);
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No logs found.</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = filtered.map(log => {
+    const time = new Date(log.timestamp).toLocaleString();
+    const levelClass = `log-${(log.level || 'info').toLowerCase()}`;
+    const detailsBtn = log.details ? 
+      `<button class="btn btn-secondary btn-small view-log-details-btn" data-log-id="${log.id}">Details</button>` : 
+      '<span class="color-text-muted">—</span>';
+      
+    // Store JSON in an invisible data attribute to parse easily later
+    const encodedDetails = log.details ? escHtml(log.details) : '';
+      
+    return `
+      <tr>
+        <td style="white-space:nowrap; font-size:12px;">${time}</td>
+        <td><strong>${escHtml(log.category)}</strong></td>
+        <td><span class="log-level-badge ${levelClass}">${escHtml(log.level)}</span></td>
+        <td style="max-width: 400px; white-space: normal;">${escHtml(log.message)}</td>
+        <td data-details="${encodedDetails}">${detailsBtn}</td>
+      </tr>
+    `;
+  }).join('');
+  
+  // Attach listeners to details buttons
+  $$('.view-log-details-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const td = btn.closest('td');
+      const detailsStr = td.getAttribute('data-details');
+      let prettyJson = detailsStr;
+      try {
+        prettyJson = JSON.stringify(JSON.parse(detailsStr), null, 2);
+      } catch (e) {
+        // Not valid JSON, keep string
+      }
+      $('#log-details-json').textContent = prettyJson;
+      $('#log-details-modal').classList.remove('hidden');
+    });
+  });
+}
+
+$('#refresh-logs-btn').addEventListener('click', loadLogs);
+$('#log-category-filter').addEventListener('change', renderLogs);
+
+// Modal handlers
+$('#close-log-details-btn').addEventListener('click', () => $('#log-details-modal').classList.add('hidden'));
+$('#log-details-ok-btn').addEventListener('click', () => $('#log-details-modal').classList.add('hidden'));
+$('#log-details-modal').addEventListener('click', (e) => {
+  if (e.target === $('#log-details-modal')) {
+    $('#log-details-modal').classList.add('hidden');
+  }
 });
 
 // ================================================================

@@ -4,6 +4,7 @@
  * POST — store loot history items from RCLootCouncil
  */
 import { ensureTablesExist } from '../db-init.js';
+import { logEvent } from '../utils/logger.js';
 
 export async function onRequest({ request, env }) {
   const headers = {
@@ -130,6 +131,8 @@ export async function onRequest({ request, env }) {
         }
       }
 
+      await logEvent(env, 'success', 'Loot', `Stored ${insertedCount} loot history items`, { inserted: insertedCount });
+
       return new Response(
         JSON.stringify({
           success: true,
@@ -139,6 +142,7 @@ export async function onRequest({ request, env }) {
         { headers }
       );
     } catch (err) {
+      await logEvent(env, 'error', 'API', `Loot history manual storage failed: ${err.message}`);
       return new Response(
         JSON.stringify({ error: err.message }),
         { status: 500, headers }

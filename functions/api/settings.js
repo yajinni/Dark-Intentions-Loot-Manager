@@ -4,6 +4,7 @@
  * POST — saves a key/value setting to D1
  */
 import { ensureTablesExist } from '../db-init.js';
+import { logEvent } from '../utils/logger.js';
 
 export async function onRequest({ request, env }) {
   const headers = { 'Content-Type': 'application/json' };
@@ -26,7 +27,9 @@ export async function onRequest({ request, env }) {
       return new Response(
         JSON.stringify({
           api_key: settingsMap['wowaudit_api_key'] ?? '',
-          default_gp: settingsMap['default_gp'] ?? ''
+          api_key: settingsMap['wowaudit_api_key'] ?? '',
+          default_gp: settingsMap['default_gp'] ?? '',
+          enable_logging: settingsMap['enable_logging'] ?? 'false'
         }),
         { headers }
       );
@@ -54,11 +57,15 @@ export async function onRequest({ request, env }) {
         )
         .bind(key, String(value ?? ''))
         .run();
+
+      await logEvent(env, 'info', 'System', `Setting '${key}' was updated.`, { key, value });
+
       return new Response(
         JSON.stringify({ success: true, message: 'Setting saved successfully' }),
         { headers }
       );
     } catch (err) {
+      await logEvent(env, 'error', 'API', `Failed to save setting: ${err.message}`);
       return new Response(
         JSON.stringify({ error: err.message }),
         { status: 500, headers }
