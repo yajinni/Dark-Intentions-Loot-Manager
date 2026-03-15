@@ -204,9 +204,9 @@ async function switchTab(name) {
   clearUnsavedChanges();
 
   // Lazy-load tab data on first visit
-  // For attendance, always sync to get latest data
-  if (name === 'attendance') {
-    syncAttendance().catch(err => showMessage('attendance', 'error', `✗ Auto-sync failed: ${err.message}`));
+  // For signups, always load to get latest data
+  if (name === 'signups') {
+    loadSignups().catch(err => showMessage('signups', 'error', `✗ Failed to load signups: ${err.message}`));
     return;
   }
 
@@ -216,6 +216,12 @@ async function switchTab(name) {
     if (name === 'loot')   loadLootHistory();
     if (name === 'epgp')   loadEpgp();
     if (name === 'admin')  loadAdminSettings();
+    if (name === 'logs')   loadLogs();
+  }
+  // Always force reload logs
+  if (name === 'logs') {
+    tabLoaded.logs = false;
+    loadLogs();
   }
 }
 
@@ -1104,6 +1110,12 @@ async function loadAdminSettings() {
     if (data.default_gp) {
       $('#default-gp-input').value = data.default_gp;
     }
+    if (data.enable_logging) {
+      const isEnabled = data.enable_logging === 'true';
+      $('#enable-logging-toggle').checked = isEnabled;
+      $('#enable-logging-label').textContent = isEnabled ? 'Enabled' : 'Disabled';
+      $('#enable-logging-label').style.color = isEnabled ? '#4caf73' : '#e05555';
+    }
   } catch {
     // Settings may just not be set yet; fail silently
   }
@@ -1174,6 +1186,41 @@ $('#save-default-gp-btn').addEventListener('click', async () => {
 
     if (data.success) {
       showMessage('admin', 'success', `✓ Default GP updated to ${defaultGp}`);
+      clearUnsavedChanges();
+    } else {
+      showMessage('admin', 'error', `✗ ${data.error || 'Save failed'}`);
+    }
+  } catch (err) {
+    showMessage('admin', 'error', `✗ Network error: ${err.message}`);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// Save enable logging setting
+$('#enable-logging-toggle').addEventListener('change', (e) => {
+  const isEnabled = e.target.checked;
+  $('#enable-logging-label').textContent = isEnabled ? 'Enabled' : 'Disabled';
+  $('#enable-logging-label').style.color = isEnabled ? '#4caf73' : '#e05555';
+  markUnsavedChanges();
+});
+
+$('#save-logging-btn').addEventListener('click', async () => {
+  const btn = $('#save-logging-btn');
+  const isEnabled = $('#enable-logging-toggle').checked;
+
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: 'enable_logging', value: String(isEnabled) }),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showMessage('admin', 'success', `✓ System logging ${isEnabled ? 'enabled' : 'disabled'}`);
       clearUnsavedChanges();
     } else {
       showMessage('admin', 'error', `✗ ${data.error || 'Save failed'}`);
@@ -1666,134 +1713,129 @@ $('#sync-loot-btn').addEventListener('click', async () => {
 });
 
 // ================================================================
-//  ATTENDANCE TAB — Fetch and Display Raid Signups
+//  SIGN UPS TAB — Fetch and Display Raid Signups
 // ================================================================
-function getWeekCodeForDate(date) {
-  // March 16, 2026 (Monday) = week code 2538856
-  // Each week after that increases by 1
-  const baseDate = new Date('2026-03-16');
-  baseDate.setHours(0, 0, 0, 0);
-  const baseWeekCode = 2538856;
-  const timeDiff = date.getTime() - baseDate.getTime();
-  const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-  const weeksDiff = Math.floor(daysDiff / 7);
-  return baseWeekCode + weeksDiff;
-}
 
-function getUpcomingWeekCode() {
-  // Get the week code for the NEXT Monday
-  // Every Monday, show the following week
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+async function loadSignups() {
+  const container = $('#signups-container');
+  if (!container) return;
+  
+  container.innerHTML = '<div class="empty-row text-center" style="padding: 20px;">Loading sign ups...</div>';
 
-  const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-
-  // Calculate days until next Monday
-  // Monday = 1, so if today is Monday, next Monday is 7 days away
-  // If today is Sunday = 0, next Monday is 1 day away
-  // If today is Tuesday = 2, next Monday is 6 days away, etc.
-  const daysUntilNextMonday = (8 - dayOfWeek) % 7 || 7;
-
-  const nextMonday = new Date(today);
-  nextMonday.setDate(nextMonday.getDate() + daysUntilNextMonday);
-
-  return getWeekCodeForDate(nextMonday);
-}
-
-async function syncAttendance() {
   try {
-    const weekCode = getUpcomingWeekCode();
-    const res = await fetch(`/api/attendance-sync?week_code=${weekCode}`, { method: 'POST' });
-    const contentType = res.headers.get('content-type') || '';
-    if (!contentType.includes('application/json')) {
-      const text = await res.text();
-      throw new Error(`${res.status} - ${text || 'No response'}`);
-    }
+    const res = await fetch(`/api/signups`);
     const data = await res.json();
+    
     if (!data.success) {
-      throw new Error(data.error || 'Sync failed');
+      throw new Error(data.error || 'Failed to load signups');
     }
-    return { weekCode, data };
+    
+    const signups = data.signups || [];
+    renderSignups(signups);
   } catch (err) {
-    throw new Error(`Failed to sync attendance: ${err.message}`);
+    showMessage('signups', 'error', `✗ Error loading signups: ${err.message}`);
+    container.innerHTML = `<div class="empty-row text-center" style="padding: 20px; color: #ff4444;">Error: ${escHtml(err.message)}</div>`;
   }
 }
 
-async function loadAttendance(weekCode) {
-  try {
-    const res = await fetch(`/api/attendance?week_code=${weekCode}`);
-    const data = await res.json();
-    const records = data.attendance || [];
-    renderAttendanceTable(records);
-    return records;
-  } catch (err) {
-    showMessage('attendance', 'error', `✗ Error loading attendance: ${err.message}`);
-    renderAttendanceTable([]);
-    return [];
-  }
-}
-
-function getStatusClass(status) {
+function getSignupStatusClass(status) {
   if (!status || status === 'Unknown') return 'status-unknown';
-  if (status === 'Present') return 'status-present';
-  if (status === 'Absent') return 'status-absent';
-  if (status === 'Tentative') return 'status-tentative';
-  return 'status-tentative'; // default to yellow for other statuses
+  if (status === 'Present' || status === 'Accepted') return 'status-present';
+  if (status === 'Absent' || status === 'Declined') return 'status-absent';
+  if (status === 'Tentative' || status === 'Late') return 'status-tentative';
+  return 'status-tentative';
 }
 
-function getStatusDisplay(status) {
-  if (!status || status === 'Unknown') return 'SIGN UP!';
-  return status;
-}
+function renderSignups(signups) {
+  const container = $('#signups-container');
+  if (!container) return;
 
-function renderAttendanceTable(records) {
-  const tbody = $('#attendance-tbody');
-  if (!tbody) return;
-
-  if (records.length === 0) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No attendance data. Click "Sync Attendance" to load.</td></tr>';
+  if (signups.length === 0) {
+    container.innerHTML = '<div class="empty-row text-center" style="padding: 20px;">No sign ups data available yet.</div>';
     return;
   }
 
-  tbody.innerHTML = records.map(record => {
-    const statusClass = getStatusClass(record.status);
-    const statusDisplay = getStatusDisplay(record.status);
-    return `
-      <tr>
-        <td><strong>${escHtml(record.character_name)}</strong></td>
-        <td>${escHtml(record.realm || '—')}</td>
-        <td>${escHtml(record.class || '—')}</td>
-        <td>${escHtml(record.role || '—')}</td>
-        <td class="${statusClass}">${escHtml(statusDisplay)}</td>
-      </tr>
-    `;
-  }).join('');
-}
-
-const syncAttendanceBtn = $('#sync-attendance-btn');
-if (syncAttendanceBtn) {
-  syncAttendanceBtn.addEventListener('click', async () => {
-    syncAttendanceBtn.disabled = true;
-    syncAttendanceBtn.innerHTML = '<span class="btn-icon">⏳</span> Syncing…';
-
-    try {
-      const { weekCode, data } = await syncAttendance();
-
-      if (data.inserted === 0) {
-        showAlert('No raid signups found for this week.', 'No Data');
-      } else {
-        showMessage('attendance', 'success', `✓ ${data.message}`);
-      }
-
-      await loadAttendance(weekCode);
-    } catch (err) {
-      showMessage('attendance', 'error', `✗ ${err.message}`);
-    } finally {
-      syncAttendanceBtn.disabled = false;
-      syncAttendanceBtn.innerHTML = '<span class="btn-icon">🔄</span> Sync Attendance';
+  // Group by Date
+  const grouped = {};
+  signups.forEach(s => {
+    if (!grouped[s.date]) {
+      grouped[s.date] = [];
     }
+    grouped[s.date].push(s);
+  });
+
+  // Sort dates descending
+  const dates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+
+  let html = '';
+  dates.forEach((date, i) => {
+    const records = grouped[date];
+    // Start expanded for the most recent date, collapsed for others
+    const collapsedClass = i === 0 ? '' : 'collapsed';
+    const displayStyle = i === 0 ? '' : 'style="display: none;"';
+
+    html += `
+      <div class="collapsible-section" style="margin-bottom: 10px;">
+        <button class="collapsible-header ${collapsedClass}" data-target="signups-${date}" style="width: 100%; text-align: left; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; color: #e1e1e6;">
+          <span class="collapse-icon">${i === 0 ? '▼' : '▶'}</span>
+          <strong style="margin-left: 10px; font-size: 1.1em;">Raid Date: ${date} <span style="font-weight: normal; font-size: 0.9em; color: #aaa;">(${records.length} Signups)</span></strong>
+        </button>
+        <div id="signups-${date}" class="collapsible-content" ${displayStyle}>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Character</th>
+                <th>Class</th>
+                <th>Status</th>
+                <th>Bonus Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${records.map(r => {
+                const statusClass = getSignupStatusClass(r.status);
+                const epBadge = r.ep_awarded 
+                  ? '<span style="color: #4CAF50; font-size: 0.9em;">✔️ +1 EP Awarded</span>' 
+                  : (r.status !== 'Unknown' ? '<span style="color: #FFC107; font-size: 0.9em;">Pending</span>' : '<span style="color: #888; font-size: 0.9em;">N/A</span>');
+                const classCssName = classCss(r.class);
+                return `
+                  <tr>
+                    <td><strong class="${classCssName}">${escHtml(r.character_name)}</strong></td>
+                    <td class="${classCssName}">${escHtml(r.class || '—')}</td>
+                    <td class="${statusClass}">${escHtml(r.status)}</td>
+                    <td>${epBadge}</td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+
+  // Add click listeners to new collapsible headers
+  container.querySelectorAll('.collapsible-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const isCollapsed = header.classList.contains('collapsed');
+      const targetId = header.getAttribute('data-target');
+      const targetContent = document.getElementById(targetId);
+      
+      if (isCollapsed) {
+        header.classList.remove('collapsed');
+        header.querySelector('.collapse-icon').textContent = '▼';
+        targetContent.style.display = 'block';
+      } else {
+        header.classList.add('collapsed');
+        header.querySelector('.collapse-icon').textContent = '▶';
+        targetContent.style.display = 'none';
+      }
+    });
   });
 }
+
+
 
 // ================================================================
 //  COLLAPSIBLE SECTIONS
@@ -1802,6 +1844,90 @@ $$('.collapsible-header').forEach(header => {
   header.addEventListener('click', () => {
     header.classList.toggle('collapsed');
   });
+});
+
+// ================================================================
+//  SYSTEM LOGS TAB
+// ================================================================
+let systemLogs = [];
+
+async function loadLogs() {
+  const tbody = $('#logs-tbody');
+  tbody.innerHTML = '<tr class="empty-row"><td colspan="5" class="loading">Loading logs...</td></tr>';
+  
+  try {
+    const res = await fetch('/api/logs');
+    const data = await res.json();
+    if (data.success) {
+      systemLogs = data.logs || [];
+      renderLogs();
+    } else {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="5">Error: ${escHtml(data.error)}</td></tr>`;
+    }
+  } catch (err) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="5">Network Error: ${escHtml(err.message)}</td></tr>`;
+  }
+}
+
+function renderLogs() {
+  const tbody = $('#logs-tbody');
+  const filterCat = $('#log-category-filter').value;
+  
+  const filtered = filterCat === 'All' ? systemLogs : systemLogs.filter(L => L.category === filterCat);
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No logs found.</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = filtered.map(log => {
+    const time = new Date(log.timestamp).toLocaleString();
+    const levelClass = `log-${(log.level || 'info').toLowerCase()}`;
+    const detailsBtn = log.details ? 
+      `<button class="btn btn-secondary btn-small view-log-details-btn" data-log-id="${log.id}">Details</button>` : 
+      '<span class="color-text-muted">—</span>';
+      
+    // Store JSON in an invisible data attribute to parse easily later
+    const encodedDetails = log.details ? escHtml(log.details) : '';
+      
+    return `
+      <tr>
+        <td style="white-space:nowrap; font-size:12px;">${time}</td>
+        <td><strong>${escHtml(log.category)}</strong></td>
+        <td><span class="log-level-badge ${levelClass}">${escHtml(log.level)}</span></td>
+        <td style="max-width: 400px; white-space: normal;">${escHtml(log.message)}</td>
+        <td data-details="${encodedDetails}">${detailsBtn}</td>
+      </tr>
+    `;
+  }).join('');
+  
+  // Attach listeners to details buttons
+  $$('.view-log-details-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const td = btn.closest('td');
+      const detailsStr = td.getAttribute('data-details');
+      let prettyJson = detailsStr;
+      try {
+        prettyJson = JSON.stringify(JSON.parse(detailsStr), null, 2);
+      } catch (e) {
+        // Not valid JSON, keep string
+      }
+      $('#log-details-json').textContent = prettyJson;
+      $('#log-details-modal').classList.remove('hidden');
+    });
+  });
+}
+
+$('#refresh-logs-btn').addEventListener('click', loadLogs);
+$('#log-category-filter').addEventListener('change', renderLogs);
+
+// Modal handlers
+$('#close-log-details-btn').addEventListener('click', () => $('#log-details-modal').classList.add('hidden'));
+$('#log-details-ok-btn').addEventListener('click', () => $('#log-details-modal').classList.add('hidden'));
+$('#log-details-modal').addEventListener('click', (e) => {
+  if (e.target === $('#log-details-modal')) {
+    $('#log-details-modal').classList.add('hidden');
+  }
 });
 
 // ================================================================

@@ -93,3 +93,13 @@ INSERT OR IGNORE INTO epgp_gear_values (slot_name, point_value) VALUES
   ('Off Hand',  0),
   ('Tier',      0),
   ('Ranged',    0);
+
+-- ─── System Logs ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS system_logs (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  timestamp  TEXT DEFAULT (datetime('now')),
+  level      TEXT DEFAULT 'info',
+  category   TEXT NOT NULL,
+  message    TEXT NOT NULL,
+  details    TEXT
+);

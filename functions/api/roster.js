@@ -8,6 +8,7 @@
  *   Header: Authorization: <api_key>
  */
 import { ensureTablesExist } from '../db-init.js';
+import { logEvent } from '../utils/logger.js';
 
 export async function onRequest({ request, env }) {
   const headers = { 'Content-Type': 'application/json' };
@@ -60,6 +61,7 @@ export async function onRequest({ request, env }) {
         })
       );
 
+      await logEvent(env, 'info', 'API', 'App fetched full Roster data.');
       return new Response(JSON.stringify({ roster: rosterWithTotals }), { headers });
     } catch (err) {
       return new Response(
@@ -175,6 +177,7 @@ export async function onRequest({ request, env }) {
         }
       }
 
+      await logEvent(env, 'success', 'Roster', `Synced ${chars.length} characters from WoWAudit`);
       return new Response(
         JSON.stringify({
           success: true,
@@ -184,6 +187,7 @@ export async function onRequest({ request, env }) {
         { headers }
       );
     } catch (err) {
+      await logEvent(env, 'error', 'API', `WoWAudit Roster sync failed: ${err.message}`);
       return new Response(
         JSON.stringify({ error: err.message }),
         { status: 500, headers }

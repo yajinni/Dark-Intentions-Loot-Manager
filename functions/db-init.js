@@ -9,10 +9,10 @@
  */
 export async function ensureTablesExist(env) {
   try {
-    // Check if the newest table exists (attendance)
+    // Check if the newest table exists (signups)
     // If it doesn't, run initialization — all statements use IF NOT EXISTS so it's safe
     const result = await env.DB
-      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='attendance'")
+      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='signups'")
       .first();
 
     if (!result) {
@@ -109,21 +109,15 @@ async function initializeDatabase(env) {
       updated_at              TEXT DEFAULT (datetime('now'))
     );
 
-    CREATE TABLE IF NOT EXISTS attendance (
-      id           INTEGER PRIMARY KEY AUTOINCREMENT,
-      week_code    INTEGER NOT NULL,
-      raid_date    TEXT NOT NULL,
-      raid_instance TEXT,
-      character_id INTEGER,
+    CREATE TABLE IF NOT EXISTS signups (
+      id             INTEGER PRIMARY KEY AUTOINCREMENT,
+      raid_id        INTEGER NOT NULL,
+      date           TEXT NOT NULL,
       character_name TEXT NOT NULL,
-      realm        TEXT,
-      class        TEXT,
-      role         TEXT,
-      status       TEXT,
-      selected     BOOLEAN DEFAULT 0,
-      comment      TEXT,
-      updated_at   TEXT DEFAULT (datetime('now')),
-      UNIQUE(week_code, character_name)
+      class          TEXT,
+      status         TEXT,
+      ep_awarded     BOOLEAN DEFAULT 0,
+      UNIQUE(raid_id, character_name)
     );
 
     INSERT OR REPLACE INTO settings (key, value)
@@ -148,6 +142,15 @@ async function initializeDatabase(env) {
       ('Off Hand',  0),
       ('Tier',      0),
       ('Ranged',    0);
+
+    CREATE TABLE IF NOT EXISTS system_logs (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      timestamp  TEXT DEFAULT (datetime('now')),
+      level      TEXT DEFAULT 'info',
+      category   TEXT NOT NULL,
+      message    TEXT NOT NULL,
+      details    TEXT
+    );
   `;
 
   // Execute each statement separately

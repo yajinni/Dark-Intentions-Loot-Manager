@@ -4,6 +4,7 @@
  * POST — saves updated point values for each gear slot
  */
 import { ensureTablesExist } from '../db-init.js';
+import { logEvent } from '../utils/logger.js';
 
 export async function onRequest({ request, env }) {
   const headers = { 'Content-Type': 'application/json' };
@@ -49,11 +50,14 @@ export async function onRequest({ request, env }) {
           .run();
       }
 
+      await logEvent(env, 'info', 'System', 'EPGP gear slot values were updated manually.');
+
       return new Response(
         JSON.stringify({ success: true, message: 'Gear values saved successfully' }),
         { headers }
       );
     } catch (err) {
+      await logEvent(env, 'error', 'API', `Failed to update gear values: ${err.message}`);
       return new Response(
         JSON.stringify({ error: err.message }),
         { status: 500, headers }

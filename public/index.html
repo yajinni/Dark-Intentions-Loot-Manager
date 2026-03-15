@@ -49,13 +49,17 @@
         <span class="nav-icon">⚖️</span>
         <span class="nav-label">EPGP</span>
       </li>
-      <li class="nav-item" data-tab="attendance">
+      <li class="nav-item" data-tab="signups">
         <span class="nav-icon">📅</span>
-        <span class="nav-label">Attendance</span>
+        <span class="nav-label">Sign Ups</span>
       </li>
       <li class="nav-item" data-tab="admin">
         <span class="nav-icon">⚙️</span>
         <span class="nav-label">Admin</span>
+      </li>
+      <li class="nav-item" data-tab="logs">
+        <span class="nav-icon">📜</span>
+        <span class="nav-label">System Logs</span>
       </li>
     </ul>
 
@@ -145,7 +149,7 @@
       <div id="epgp-message" class="message hidden"></div>
       <div class="content-scroll">
         <div class="collapsible-section">
-          <button class="collapsible-header" data-target="on-time-bonus-content">
+          <button class="collapsible-header collapsed" data-target="on-time-bonus-content">
             <span class="collapse-icon">▼</span>
             <h2 class="section-title">Edit EP</h2>
           </button>
@@ -183,7 +187,7 @@
         </div>
 
         <div class="collapsible-section">
-          <button class="collapsible-header" data-target="edit-gp-bulk-content">
+          <button class="collapsible-header collapsed" data-target="edit-gp-bulk-content">
             <span class="collapse-icon">▼</span>
             <h2 class="section-title">Edit GP</h2>
           </button>
@@ -261,35 +265,19 @@
       </div>
     </div>
 
-    <!-- ── Attendance Tab ─────────────────────── -->
-    <div id="tab-attendance" class="tab-panel">
+    <!-- ── Sign Ups Tab ─────────────────────── -->
+    <div id="tab-signups" class="tab-panel">
       <div class="panel-header">
-        <h1>Raid Attendance</h1>
+        <h1>Raid Sign Ups</h1>
         <div class="panel-header-actions">
-          <button id="sync-attendance-btn" class="btn btn-primary">
-            <span class="btn-icon">🔄</span> Sync Attendance
-          </button>
         </div>
       </div>
-      <div id="attendance-message" class="message hidden"></div>
+      <div id="signups-message" class="message hidden"></div>
       <div class="content-scroll">
-        <div class="attendance-container">
-          <table class="attendance-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Realm</th>
-                <th>Class</th>
-                <th>Role</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="attendance-tbody">
-              <tr class="empty-row">
-                <td colspan="5">No attendance data. Click "Sync Attendance" to load.</td>
-              </tr>
-            </tbody>
-          </table>
+        <div id="signups-container" class="attendance-container">
+          <div class="empty-row text-center" style="padding: 20px;">
+            Loading sign ups...
+          </div>
         </div>
       </div>
     </div>
@@ -359,6 +347,26 @@
 
         <hr class="admin-separator">
         <section class="admin-section">
+          <h2 class="section-title">System Logging</h2>
+          <div class="form-group form-group-no-top-margin">
+            <div class="input-group" style="align-items: center; gap: 12px;">
+              <label class="switch" style="position: relative; display: inline-block; width: 40px; height: 20px;">
+                <input type="checkbox" id="enable-logging-toggle" style="opacity: 0; width: 0; height: 0;">
+                <span class="slider" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px;"></span>
+              </label>
+              <span id="enable-logging-label" style="font-size: 14px; font-weight: 600; color: #e05555;">Disabled</span>
+              <button id="save-logging-btn" class="btn btn-primary" style="margin-left: auto;">
+                <span class="btn-icon">💾</span> Save
+              </button>
+            </div>
+            <small class="form-hint">
+              Toggle whether the Loot Manager records events to the internal system logs.
+            </small>
+          </div>
+        </section>
+
+        <hr class="admin-separator">
+        <section class="admin-section">
           <h2 class="section-title">Danger Zone</h2>
 
           <!-- Delete Single Character -->
@@ -386,6 +394,45 @@
             </button>
           </div>
         </section>
+      </div>
+    </div>
+
+    <!-- ── System Logs Tab ──────────────────────── -->
+    <div id="tab-logs" class="tab-panel">
+      <div class="panel-header">
+        <h1>System Logs</h1>
+        <div class="panel-header-actions">
+          <select id="log-category-filter" class="form-select" style="max-width: 150px; margin: 0;">
+            <option value="All">All Categories</option>
+            <option value="EPGP">EPGP</option>
+            <option value="Loot">Loot</option>
+            <option value="Roster">Roster</option>
+            <option value="System">System</option>
+            <option value="API">API</option>
+          </select>
+          <button id="refresh-logs-btn" class="btn btn-primary">
+            <span class="btn-icon">🔄</span> Refresh
+          </button>
+        </div>
+      </div>
+      <div id="logs-message" class="message hidden"></div>
+      <div class="content-scroll">
+        <table id="logs-table" class="data-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Category</th>
+              <th>Level</th>
+              <th>Message</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="logs-tbody">
+            <tr class="empty-row">
+              <td colspan="5">Loading system logs...</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -488,6 +535,22 @@
       <div class="modal-footer">
         <button id="confirm-modal-cancel" class="btn btn-secondary">Cancel</button>
         <button id="confirm-modal-ok" class="btn btn-danger">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Log Details Modal -->
+  <div id="log-details-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Log Details</h2>
+        <button id="close-log-details-btn" class="btn-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <pre id="log-details-json" style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 5px; font-family: monospace; font-size: 14px; color: #a9dc76; overflow-x: auto; white-space: pre-wrap; word-break: break-all; margin: 0;"></pre>
+      </div>
+      <div class="modal-footer">
+        <button id="log-details-ok-btn" class="btn btn-primary">Close</button>
       </div>
     </div>
   </div>
