@@ -121,6 +121,11 @@ export async function onRequest({ request, env }) {
       let insertedCount = 0;
 
       for (const item of historyItems) {
+        // Skip loot with "Normal" difficulty
+        if (item.difficulty && item.difficulty.toLowerCase() === 'normal') {
+          continue;
+        }
+
         try {
           await env.DB
             .prepare(
