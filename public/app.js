@@ -26,7 +26,9 @@ async function apiFetch(url, options = {}) {
     currentUser = null;
     localStorage.removeItem('auth_token');
     updateAuthUI();
-    if (['epgp', 'admin', 'logs', 'users'].includes(activeTab)) {
+    const activeTabPanel = document.querySelector('.tab-panel.active');
+    const currentTab = activeTabPanel ? activeTabPanel.id.replace('tab-', '') : '';
+    if (['epgp', 'admin', 'logs', 'users'].includes(currentTab)) {
       switchTab('roster');
     }
   }
@@ -2019,7 +2021,9 @@ $('#auth-logout-btn').addEventListener('click', async () => {
   currentUser = null;
   localStorage.removeItem('auth_token');
   updateAuthUI();
-  if (['epgp', 'admin', 'logs', 'users'].includes(activeTab)) {
+  const activeTabPanel = document.querySelector('.tab-panel.active');
+  const currentTab = activeTabPanel ? activeTabPanel.id.replace('tab-', '') : '';
+  if (['epgp', 'admin', 'logs', 'users'].includes(currentTab)) {
     switchTab('roster');
   }
 });
@@ -2051,11 +2055,11 @@ $('#login-submit-btn').addEventListener('click', async () => {
       $('#login-modal').classList.add('hidden');
       updateAuthUI();
     } else {
-      msg.textContent = data.error || 'Login failed';
+      msg.textContent = data.error || 'invalid login';
       msg.className = 'message error';
     }
   } catch (err) {
-    msg.textContent = 'Network error during login';
+    msg.textContent = 'invalid login';
     msg.className = 'message error';
   }
 });
