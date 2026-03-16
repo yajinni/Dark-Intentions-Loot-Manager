@@ -29,7 +29,7 @@ export async function onRequest({ request, env }) {
       ).bind(username, hash).first();
 
       if (!user) {
-        return new Response(JSON.stringify({ error: 'Invalid username or password' }), { status: 401, headers });
+        return new Response(JSON.stringify({ error: 'Invalid login' }), { status: 401, headers });
       }
 
       // Generate session token valid for 7 days

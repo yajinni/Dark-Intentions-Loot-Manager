@@ -1,0 +1,1 @@
+INSERT INTO users (username, password_hash, is_admin) VALUES ('Yajinni', '263108cdd0792d517fd0525012c75c26a226ec1740f43c923827948c6cc8e6a4', 1);
