@@ -1151,9 +1151,95 @@ async function loadAdminSettings() {
     // Settings may just not be set yet; fail silently
   }
 
-  // Populate character delete dropdown
+  // Populate character dropdowns
   await populateCharacterDeleteSelect();
+  await populateRenameDropdown();
 }
+
+async function populateRenameDropdown() {
+  const select = $('#rename-character-select');
+  if (!select) return;
+
+  try {
+    const res = await apiFetch('/api/roster');
+    const data = await res.json();
+
+    select.innerHTML = '<option value="">— Select a character —</option>';
+
+    if (data.roster && data.roster.length > 0) {
+      const characters = data.roster
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      characters.forEach(char => {
+        const option = document.createElement('option');
+        option.value = char.name;
+        option.textContent = char.name;
+        // Store realm as data attribute to auto-fill
+        option.dataset.realm = char.realm || '';
+        select.appendChild(option);
+      });
+    }
+  } catch (err) {
+    select.innerHTML = '<option value="">Error loading characters</option>';
+  }
+}
+
+$('#rename-character-select').addEventListener('change', (e) => {
+  const selected = e.target.options[e.target.selectedIndex];
+  if (selected && selected.value) {
+    $('#rename-new-name').value = selected.value;
+    $('#rename-new-realm').value = selected.dataset.realm || '';
+  } else {
+    $('#rename-new-name').value = '';
+    $('#rename-new-realm').value = '';
+  }
+});
+
+$('#rename-character-btn').addEventListener('click', async () => {
+  const oldName = $('#rename-character-select').value;
+  const newName = $('#rename-new-name').value.trim();
+  const newRealm = $('#rename-new-realm').value.trim();
+  const btn = $('#rename-character-btn');
+
+  if (!oldName || !newName) {
+    showMessage('admin', 'error', '✗ Current name and new name are required');
+    return;
+  }
+
+  const confirmed = await showConfirm({
+    title: 'Rename Character',
+    message: `Rename "${oldName}" to "${newName}"? This will update all their historical EP/GP and Signup logs.`,
+    confirmText: 'Confirm Rename',
+  });
+
+  if (!confirmed) return;
+
+  btn.disabled = true;
+
+  try {
+    const res = await apiFetch('/api/character-rename', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ oldName, newName, newRealm }),
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      showMessage('admin', 'success', `✓ ${data.message}`);
+      $('#rename-new-name').value = '';
+      $('#rename-new-realm').value = '';
+      await populateRenameDropdown();
+      await populateCharacterDeleteSelect();
+      loadRoster();
+    } else {
+      showMessage('admin', 'error', `✗ ${data.error || 'Rename failed'}`);
+    }
+  } catch (err) {
+    showMessage('admin', 'error', `✗ Network error: ${err.message}`);
+  } finally {
+    btn.disabled = false;
+  }
+});
 
 // Toggle API key visibility
 $('#toggle-api-key').addEventListener('click', () => {
