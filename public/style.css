@@ -1369,59 +1369,74 @@ body {
 }
 
 /* ── Attendance Tab ──────────────────────────────────────────────── */
-.attendance-container {
-  width: 100%;
+.attendance-snapshot {
+  margin-bottom: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.attendance-table {
+.attendance-header {
   width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-.attendance-table thead {
+  padding: 15px 20px;
   background: rgba(200, 168, 75, 0.08);
-  border-bottom: 2px solid var(--color-gold-border);
-}
-
-.attendance-table th {
-  color: var(--color-gold);
-  padding: 12px 16px;
-  text-align: left;
-  font-weight: 600;
-}
-
-.attendance-table td {
-  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   border-bottom: 1px solid var(--color-border);
-  color: var(--color-text);
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.attendance-table tbody tr:hover {
-  background: rgba(200, 168, 75, 0.05);
+.attendance-header:hover {
+  background: rgba(200, 168, 75, 0.15);
 }
 
-/* Status color codes */
-.status-present {
-  color: var(--color-success);
+.attendance-title {
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
   font-weight: 600;
+  color: var(--color-gold);
 }
 
-.status-absent {
-  color: var(--color-error);
-  font-weight: 600;
+.attendance-summary {
+  font-size: 14px;
+  color: var(--color-text-muted);
 }
 
-.status-tentative {
-  color: #ffc107;
-  font-weight: 600;
+.attendance-body {
+  padding: 15px 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
 }
 
-.status-unknown {
-  color: var(--color-error);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.attendance-body.hidden {
+  display: none;
+}
+
+.attendance-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  font-size: 15px;
+}
+
+.attendance-status-icon {
+  font-size: 18px;
+  width: 20px;
+  text-align: center;
+}
+
+.status-present .attendance-status-icon { color: var(--color-success); }
+.status-absent .attendance-status-icon { color: var(--color-error); }
+
+.attendance-member-name {
+  font-weight: 500;
 }
 
 /* ── Responsive ─────────────────────────────────────────────────── */

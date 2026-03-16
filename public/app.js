@@ -246,13 +246,17 @@ async function switchTab(name) {
     if (name === 'logs')   loadLogs();
     if (name === 'users')  loadUsers();
     if (name === 'attendance') {
-      // Future logic for loading attendance
+      loadAttendance();
     }
   }
-  // Always force reload logs
+  // Always force reload logs and attendance
   if (name === 'logs') {
     tabLoaded.logs = false;
     loadLogs();
+  }
+  if (name === 'attendance') {
+    tabLoaded.attendance = false;
+    loadAttendance();
   }
 }
 
@@ -2050,6 +2054,71 @@ $('#log-details-modal').addEventListener('click', (e) => {
     $('#log-details-modal').classList.add('hidden');
   }
 });
+
+// ================================================================
+//  ATTENDANCE TAB
+// ================================================================
+async function loadAttendance() {
+  const container = $('#attendance-container');
+  container.innerHTML = '<div class="empty-row text-center" style="padding: 20px;">Loading attendance data...</div>';
+
+  try {
+    const res = await apiFetch('/api/attendance');
+    const data = await res.json();
+
+    if (!data.success) throw new Error(data.error || 'Failed to load');
+
+    if (data.snapshots.length === 0) {
+      container.innerHTML = '<div class="empty-row text-center" style="padding: 20px;">No attendance data recorded yet.</div>';
+      return;
+    }
+
+    container.innerHTML = data.snapshots.map((snap, index) => {
+      const presentCount = snap.members.filter(m => m.attended).length;
+      const totalCount = snap.members.length;
+      const dateStr = new Date(snap.date).toLocaleString();
+      
+      // First one expanded, others collapsed
+      const isHidden = index === 0 ? '' : 'hidden';
+
+      const membersHtml = snap.members.map(m => {
+        const className = classCss(m.class);
+        const statusClass = m.attended ? 'status-present' : 'status-absent';
+        const icon = m.attended ? '✅' : '❌';
+        
+        return `
+          <div class="attendance-member ${statusClass}">
+            <span class="attendance-status-icon">${icon}</span>
+            <span class="attendance-member-name ${className}">${escHtml(m.name)}</span>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <div class="attendance-snapshot">
+          <div class="attendance-header" data-index="${index}">
+            <div class="attendance-title">${dateStr}</div>
+            <div class="attendance-summary">${presentCount} / ${totalCount} Present</div>
+          </div>
+          <div id="attendance-body-${index}" class="attendance-body ${isHidden}">
+            ${membersHtml}
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Attach click listeners for toggling
+    $$('.attendance-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const index = header.dataset.index;
+        $(`#attendance-body-${index}`).classList.toggle('hidden');
+      });
+    });
+
+  } catch (err) {
+    container.innerHTML = `<div class="empty-row text-center text-error" style="padding: 20px;">Error: ${escHtml(err.message)}</div>`;
+  }
+}
 
 // ================================================================
 //  AUTHENTICATION & USER MANAGEMENT
