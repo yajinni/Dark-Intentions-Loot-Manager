@@ -171,3 +171,13 @@ CREATE TABLE IF NOT EXISTS system_logs (
   message    TEXT NOT NULL,
   details    TEXT
 );
+
+-- ─── Attendance Tracking ─────────────────────────────────────
+CREATE TABLE IF NOT EXISTS attendance (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  name           TEXT NOT NULL,
+  realm          TEXT NOT NULL,
+  date           TEXT NOT NULL,
+  attended       BOOLEAN NOT NULL,
+  UNIQUE(name, realm, date)
+);
