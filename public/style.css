@@ -313,6 +313,11 @@ body {
   color: var(--color-error);
 }
 
+#login-message {
+  font-size: 15px;
+  text-align: center;
+}
+
 /* ── Buttons ────────────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
