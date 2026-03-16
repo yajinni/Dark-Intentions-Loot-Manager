@@ -313,6 +313,11 @@ body {
   color: var(--color-error);
 }
 
+#login-message {
+  font-size: 15px;
+  text-align: center;
+}
+
 /* ── Buttons ────────────────────────────────────────────────────── */
 .btn {
   display: inline-flex;
@@ -390,6 +395,37 @@ body {
 
 .btn-no-top-margin {
   margin-top: -14px;
+}
+
+/* WoW Login Button (Enter World style) */
+.btn-wow-login {
+  background: linear-gradient(to bottom, #74171d, #42080a);
+  border: 2px solid #a32225;
+  border-radius: 4px;
+  color: #ffcc00;
+  font-family: 'Cinzel', serif;
+  font-size: 24px;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px #000;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.8), 0 4px 6px rgba(0,0,0,0.5);
+  padding: 12px 60px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.btn-wow-login:hover {
+  background: linear-gradient(to bottom, #942028, #5a0c0e);
+  border-color: #d62b2f;
+  color: #fffbdf;
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.9), 0 0 15px rgba(214,43,47,0.6);
+  transform: scale(1.02);
+}
+
+.btn-wow-login:active {
+  transform: scale(0.98);
+  box-shadow: inset 0 0 20px rgba(0,0,0,1);
 }
 
 /* ── Data Tables ────────────────────────────────────────────────── */
