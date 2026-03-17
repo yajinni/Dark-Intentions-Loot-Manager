@@ -115,7 +115,7 @@ export async function onRequest({ request, env }) {
               if (rosterChar) {
                 // Award Configured EP
                 const newEp = (rosterChar.ep || 0) + signupEp;
-                const reason = 'Early Sign Up';
+                const reason = `Early Sign Up [${raidDate}]`;
                 
                 await env.DB.prepare(
                   `UPDATE roster SET ep = ? WHERE id = ?`
