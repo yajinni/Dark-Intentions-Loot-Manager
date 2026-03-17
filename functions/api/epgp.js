@@ -51,14 +51,16 @@ export async function onRequest({ request, env }) {
     try {
       const { gear_values, vault_settings } = await request.json();
       
-      const statements = [];
+      const changeLogs = [];
 
-      if (Array.isArray(gear_values)) {
+      if (Array.isArray(gear_values) && gear_values.length > 0) {
         const gearStmt = env.DB.prepare(
           "UPDATE epgp_gear_values SET point_value = ?, updated_at = datetime('now') WHERE slot_name = ?"
         );
         for (const item of gear_values) {
-          statements.push(gearStmt.bind(parseInt(item.point_value, 10) || 0, item.slot_name));
+          const val = parseInt(item.point_value, 10) || 0;
+          statements.push(gearStmt.bind(val, item.slot_name));
+          changeLogs.push(`${item.slot_name}: ${val} GP`);
         }
       }
 
@@ -69,13 +71,15 @@ export async function onRequest({ request, env }) {
         for (const [key, value] of Object.entries(vault_settings)) {
           if (['min_vault_level', 'vault_1_ep', 'vault_2_ep', 'vault_3_ep', 'signup_ep', 'on_time_ep', 'default_gp'].includes(key)) {
             statements.push(vaultStmt.bind(key, String(value)));
+            changeLogs.push(`${key}: ${value}`);
           }
         }
       }
 
       if (statements.length > 0) {
         await env.DB.batch(statements);
-        await logEvent(env, 'info', 'System', 'EPGP gear values and/or vault settings were updated manually.');
+        const logMsg = `EPGP settings updated manually: ${changeLogs.join(', ')}`;
+        await logEvent(env, 'info', 'System', logMsg);
       }
 
       return new Response(
