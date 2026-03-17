@@ -44,46 +44,24 @@ export async function onRequest({ request, env }) {
 
       let deletedCounts = {};
 
-      // Delete entries from ep_log
-      try {
-        const epResult = await env.DB
-          .prepare('DELETE FROM ep_log WHERE name = ?')
-          .bind(characterName)
-          .run();
-        deletedCounts.ep_log = epResult.meta.changes ?? 0;
-      } catch (e) {
-        deletedCounts.ep_log = 0;
-      }
+      const statements = [
+        env.DB.prepare('DELETE FROM ep_log WHERE name = ?').bind(characterName),
+        env.DB.prepare('DELETE FROM gp_log WHERE name = ?').bind(characterName),
+        env.DB.prepare('DELETE FROM signups WHERE character_name = ?').bind(characterName),
+        env.DB.prepare('DELETE FROM attendance WHERE name = ?').bind(characterName),
+        env.DB.prepare('DELETE FROM loot_history WHERE name = ?').bind(characterName),
+        env.DB.prepare('DELETE FROM roster WHERE name = ?').bind(characterName)
+      ];
 
-      // Delete entries from gp_log
-      try {
-        const gpResult = await env.DB
-          .prepare('DELETE FROM gp_log WHERE name = ?')
-          .bind(characterName)
-          .run();
-        deletedCounts.gp_log = gpResult.meta.changes ?? 0;
-      } catch (e) {
-        deletedCounts.gp_log = 0;
-      }
-
-      // Delete character from roster
-      const checkResult = await env.DB
-        .prepare('SELECT name FROM roster WHERE name = ?')
-        .bind(characterName)
-        .first();
-
-      if (!checkResult) {
-        return new Response(
-          JSON.stringify({ error: 'Character not found' }),
-          { status: 404, headers }
-        );
-      }
-
-      const rosterResult = await env.DB
-        .prepare('DELETE FROM roster WHERE name = ?')
-        .bind(characterName)
-        .run();
-      deletedCounts.roster = rosterResult.meta.changes ?? 0;
+      // Execute as batch
+      const results = await env.DB.batch(statements);
+      
+      deletedCounts.ep_log = results[0].meta.changes ?? 0;
+      deletedCounts.gp_log = results[1].meta.changes ?? 0;
+      deletedCounts.signups = results[2].meta.changes ?? 0;
+      deletedCounts.attendance = results[3].meta.changes ?? 0;
+      deletedCounts.loot_history = results[4].meta.changes ?? 0;
+      deletedCounts.roster = results[5].meta.changes ?? 0;
 
       // Log the character deletion
       await logEvent(env, 'warning', 'Admin', `Permanently deleted character "${characterName}" (${deletedCounts.ep_log + deletedCounts.gp_log} EP/GP logs)`);

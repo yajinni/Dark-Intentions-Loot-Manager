@@ -19,42 +19,27 @@ export async function onRequest({ request, env }) {
   // ── POST — delete all roster data ────────────────────────────
   if (request.method === 'POST') {
     try {
-      let deletedCounts = {};
+      const tablesToClear = [
+        'roster',
+        'ep_log',
+        'gp_log',
+        'signups',
+        'attendance',
+        'loot_history',
+        'historical_activity',
+        'wowaudit_period'
+      ];
 
-      // Delete all entries from ep_log
-      try {
-        const epResult = await env.DB.prepare('DELETE FROM ep_log').run();
-        deletedCounts.ep_log = epResult.meta.changes ?? 0;
-      } catch (e) {
-        // ep_log table may not exist yet; ignore
-        deletedCounts.ep_log = 0;
-      }
-
-      // Delete all entries from gp_log
-      try {
-        const gpResult = await env.DB.prepare('DELETE FROM gp_log').run();
-        deletedCounts.gp_log = gpResult.meta.changes ?? 0;
-      } catch (e) {
-        // gp_log table may not exist yet; ignore
-        deletedCounts.gp_log = 0;
-      }
-
-      try {
-        const rosterResult = await env.DB.prepare('DELETE FROM roster').run();
-        deletedCounts.roster = rosterResult.meta.changes ?? 0;
-      } catch (e) {
-        deletedCounts.roster = 0;
-        throw new Error(`Failed to delete roster: ${e.message}`);
-      }
+      const statements = tablesToClear.map(table => env.DB.prepare(`DELETE FROM ${table}`));
+      await env.DB.batch(statements);
 
       // Log the mass deletion
-      await logEvent(env, 'warning', 'Admin', `Permanently deleted entire roster (${deletedCounts.roster} characters, ${deletedCounts.ep_log + deletedCounts.gp_log} EP/GP logs)`);
+      await logEvent(env, 'warning', 'Admin', `Permanently deleted entire roster and all related logs (signups, attendance, loot, vault data)`);
 
       return new Response(
         JSON.stringify({
           success: true,
-          message: '✓ Roster and all related data permanently deleted',
-          deleted: deletedCounts,
+          message: '✓ Roster and all related data (Sign Ups, On Time, Loot, Vault) permanently deleted',
         }),
         { headers }
       );
