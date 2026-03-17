@@ -62,7 +62,8 @@ export async function onRequest({ request, env }) {
       );
 
       const count = rosterWithTotals.length;
-      await logEvent(env, 'info', 'API', `Refreshed roster from database (${count} character${count === 1 ? '' : 's'} found).`);
+      const characterNames = rosterWithTotals.map(c => c.name);
+      await logEvent(env, 'info', 'API', `Refreshed roster from database (${count} character${count === 1 ? '' : 's'} found).`, { characters: characterNames });
       return new Response(JSON.stringify({ roster: rosterWithTotals }), { headers });
     } catch (err) {
       return new Response(
@@ -178,7 +179,8 @@ export async function onRequest({ request, env }) {
         }
       }
 
-      await logEvent(env, 'success', 'Roster', `Synced ${chars.length} characters from WoWAudit`);
+      const characterNames = chars.map(c => c.name || 'Unknown');
+      await logEvent(env, 'success', 'Roster', `Synced ${chars.length} characters from WoWAudit`, { characters: characterNames });
       return new Response(
         JSON.stringify({
           success: true,
