@@ -1231,6 +1231,8 @@ $('#give-bonus-btn').addEventListener('click', async () => {
     const finalReason = reason + (isSpecial ? '' : ' (Manually Modified)');
     const finalTimestamp = specialDate ? new Date(specialDate).toISOString() : new Date().toISOString();
 
+    const allCharacterNames = Array.from($$('.bonus-checkbox')).map(cb => cb.value);
+
     const response = await apiFetch('/api/ep-log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1240,7 +1242,8 @@ $('#give-bonus-btn').addEventListener('click', async () => {
         reason: finalReason,
         timestamp: finalTimestamp,
         isSpecial: isSpecial,
-        specialDate: specialDate
+        specialDate: specialDate,
+        allNames: allCharacterNames
       }),
     });
 
