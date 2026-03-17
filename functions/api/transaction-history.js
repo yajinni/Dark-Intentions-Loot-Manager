@@ -5,6 +5,7 @@
  * DELETE — delete a single transaction
  */
 import { ensureTablesExist } from '../db-init.js';
+import { logEvent } from '../utils/logger.js';
 
 export async function onRequest({ request, env }) {
   const headers = {
@@ -103,24 +104,39 @@ export async function onRequest({ request, env }) {
       const table = transactionType === 'ep' ? 'ep_log' : 'gp_log';
       const column = transactionType === 'ep' ? 'ep' : 'gp';
 
-      // Verify transaction exists
-      const checkResult = await env.DB
-        .prepare(`SELECT id FROM ${table} WHERE id = ?`)
+      // Verify transaction exists and fetch it for logging
+      const existing = await env.DB
+        .prepare(`SELECT * FROM ${table} WHERE id = ?`)
         .bind(parseInt(transactionId))
         .first();
-
-      if (!checkResult) {
+ 
+      if (!existing) {
         return new Response(
           JSON.stringify({ error: 'Transaction not found' }),
           { status: 404, headers }
         );
       }
 
+      // Identify changes
+      const oldAmount = existing[column];
+      const oldReason = existing.reason || '';
+      const newAmount = parseInt(amount);
+      const newReason = reason || '';
+
+      const changes = [];
+      if (oldAmount !== newAmount) changes.push(`Amount: ${oldAmount} -> ${newAmount}`);
+      if (oldReason !== newReason) changes.push(`Reason: "${oldReason}" -> "${newReason}"`);
+
       // Update transaction
       await env.DB
         .prepare(`UPDATE ${table} SET ${column} = ?, reason = ? WHERE id = ?`)
-        .bind(parseInt(amount), reason || '', parseInt(transactionId))
+        .bind(newAmount, newReason, parseInt(transactionId))
         .run();
+
+      if (changes.length > 0) {
+        const typeLabel = transactionType.toUpperCase();
+        await logEvent(env, 'info', 'Admin', `Updated ${typeLabel} for ${existing.name}: ${changes.join(', ')}`);
+      }
 
       return new Response(
         JSON.stringify({
@@ -163,13 +179,13 @@ export async function onRequest({ request, env }) {
       // Determine table based on type
       const table = transactionType === 'ep' ? 'ep_log' : 'gp_log';
 
-      // Verify transaction exists
-      const checkResult = await env.DB
-        .prepare(`SELECT id FROM ${table} WHERE id = ?`)
+      // Verify transaction exists and fetch it for logging
+      const existing = await env.DB
+        .prepare(`SELECT * FROM ${table} WHERE id = ?`)
         .bind(parseInt(transactionId))
         .first();
 
-      if (!checkResult) {
+      if (!existing) {
         return new Response(
           JSON.stringify({ error: 'Transaction not found' }),
           { status: 404, headers }
@@ -181,6 +197,10 @@ export async function onRequest({ request, env }) {
         .prepare(`DELETE FROM ${table} WHERE id = ?`)
         .bind(parseInt(transactionId))
         .run();
+
+      const typeLabel = transactionType.toUpperCase();
+      const amountVal = existing[column];
+      await logEvent(env, 'warning', 'Admin', `Deleted ${typeLabel} for ${existing.name}: ${amountVal} ${typeLabel}, Reason: "${existing.reason || ''}", Timestamp: "${existing.timestamp}"`);
 
       return new Response(
         JSON.stringify({
