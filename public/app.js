@@ -1254,6 +1254,21 @@ $('#give-bonus-btn').addEventListener('click', async () => {
   }
 });
 
+// Enhanced Manual EP Awards: Toggle date picker
+if ($('#bonus-reason-input') && $('#bonus-date-input')) {
+  $('#bonus-reason-input').addEventListener('input', () => {
+    const val = $('#bonus-reason-input').value.trim();
+    if (window.specialReasons && (val === window.specialReasons.signup || val === window.specialReasons.ontime)) {
+      $('#bonus-date-input').classList.remove('hidden');
+      if (!$('#bonus-date-input').value) {
+        $('#bonus-date-input').value = new Date().toISOString().split('T')[0];
+      }
+    } else {
+      $('#bonus-date-input').classList.add('hidden');
+    }
+  });
+}
+
 // Edit GP - Select/Unselect Everyone Button
 $('#select-everyone-gp-btn').addEventListener('click', () => {
   const btn = $('#select-everyone-gp-btn');
