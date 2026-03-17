@@ -14,7 +14,7 @@ export async function onRequest({ request, env }) {
   // ── POST ─────────────────────────────────────────────────────
   if (request.method === 'POST') {
     try {
-      const { name, names, ep, reason, timestamp, isSpecial, specialDate } = await request.json();
+      const { name, names, ep, reason, timestamp, isSpecial, specialDate, allNames } = await request.json();
 
       if ((!name && !names) || ep === undefined) {
         return new Response(
@@ -56,7 +56,7 @@ export async function onRequest({ request, env }) {
                   env.DB.prepare(`
                       INSERT OR REPLACE INTO signups (raid_id, date, character_name, class, status, ep_awarded)
                       VALUES (?, ?, ?, ?, ?, ?)
-                  `).bind(raidId, awardDate, charName, characterRes?.class || 'Unknown', 'Accepted', 1)
+                  `).bind(raidId, awardDate, charName, characterRes?.class || 'Unknown', 'Present', 1)
               );
           } else if (reason === onTimeReason) {
               statements.push(
@@ -68,6 +68,30 @@ export async function onRequest({ request, env }) {
           }
         }
       }
+
+      // For On Time reason: also write absent records for everyone NOT selected
+      if (isSpecial) {
+        const { results: settingsForOnTime } = await env.DB
+          .prepare("SELECT key, value FROM settings WHERE key = 'on_time_reason'")
+          .all();
+        const onTimeReasonCheck = settingsForOnTime.find(r => r.key === 'on_time_reason')?.value || 'Early Sign Up';
+
+        if (reason === onTimeReasonCheck && allNames && allNames.length > 0) {
+          const selectedSet = new Set(targetNames);
+          const absentNames = allNames.filter(n => !selectedSet.has(n));
+
+          for (const absentName of absentNames) {
+            const absentChar = await env.DB.prepare("SELECT name, realm FROM roster WHERE name = ?").bind(absentName).first();
+            statements.push(
+              env.DB.prepare(`
+                INSERT OR IGNORE INTO attendance (name, realm, date, snapshot_timestamp, attended)
+                VALUES (?, ?, ?, ?, ?)
+              `).bind(absentName, absentChar?.realm || 'Unknown', awardDate, new Date().toISOString(), 0)
+            );
+          }
+        }
+      }
+
 
       await env.DB.batch(statements);
 
