@@ -50,7 +50,7 @@ export async function onRequest({ request, env }) {
   if (request.method === 'POST') {
     try {
       const { gear_values, vault_settings } = await request.json();
-      
+      const statements = [];
       const changeLogs = [];
 
       if (Array.isArray(gear_values) && gear_values.length > 0) {
