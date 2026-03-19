@@ -96,7 +96,7 @@ export async function onRequest({ request, env }) {
 
       // Step 2: Fetch loot history using the period_id
       // Try multiple URL formats for best compatibility
-      let lootResponse = null;
+      let lootHistory = null;
       const urlFormats = [
         `https://wowaudit.com/v1/loot_history/${periodId}`,
         `https://wowaudit.com/v1/loot_history?season_id=${periodId}`,
@@ -115,8 +115,12 @@ export async function onRequest({ request, env }) {
           });
           
           if (response.ok) {
-            lootResponse = response;
-            await logEvent(env, 'info', 'API', `Loot Sync: Successfully fetched data using ${url}`);
+            lootHistory = await response.json();
+            await logEvent(env, 'info', 'API', `Loot Sync: Successfully fetched data using ${url}`, { 
+              url, 
+              itemCount: Array.isArray(lootHistory) ? lootHistory.length : 'unknown',
+              data: lootHistory 
+            });
             break;
           }
         } catch (e) {
@@ -124,7 +128,7 @@ export async function onRequest({ request, env }) {
         }
       }
 
-      if (!lootResponse) {
+      if (!lootHistory) {
         await logEvent(env, 'error', 'API', `Loot Sync: Failed all URL formats for ID ${periodId}`, { periodData });
         return new Response(
           JSON.stringify({ error: `WoWAudit loot API error: Could not fetch loot history with ID ${periodId}` }),
@@ -132,8 +136,7 @@ export async function onRequest({ request, env }) {
         );
       }
 
-      const lootData = await lootResponse.json();
-      const historyItems = lootData.history_items || [];
+      const historyItems = lootHistory || [];
 
       if (!Array.isArray(historyItems)) {
         return new Response(
