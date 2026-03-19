@@ -2155,26 +2155,47 @@ function getRosterMemberClass(charName) {
 }
 
 // Update Sync Button Listener
-$('#sync-loot-btn').addEventListener('click', async () => {
+// --- New JSON Loot Import Logic ---
+$('#sync-loot-btn').addEventListener('click', () => {
+  $('#loot-file-input').click();
+});
+
+$('#loot-file-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
   const btn = $('#sync-loot-btn');
+  const originalHtml = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = '<span class="btn-icon">⏳</span> Syncing…';
+  btn.innerHTML = '<span class="btn-icon">⏳</span> Importing…';
 
   try {
-    const res = await apiFetch('/api/sync-loot-from-wowaudit', { method: 'POST' });
-    const data = await res.json();
-    
+    const reader = new FileReader();
+    const fileContent = await new Promise((resolve, reject) => {
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
+
+    const jsonData = JSON.parse(fileContent);
+    const data = await apiFetch('/api/sync-loot-json', {
+      method: 'POST',
+      body: JSON.stringify(jsonData)
+    });
+
     if (data.success) {
       showMessage('loot', 'success', `✓ ${data.message}`);
       await loadLootHistory();
     } else {
-      throw new Error(data.error || 'Sync failed');
+      throw new Error(data.error || 'Import failed');
     }
   } catch (err) {
+    console.error('Loot import error:', err);
     showMessage('loot', 'error', `✗ ${err.message}`);
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<span class="btn-icon">🔄</span> Sync Loot';
+    btn.innerHTML = originalHtml;
+    e.target.value = ''; // Reset input
   }
 });
 
