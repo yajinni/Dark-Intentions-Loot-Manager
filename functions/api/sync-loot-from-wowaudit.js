@@ -94,19 +94,40 @@ export async function onRequest({ request, env }) {
       }
 
       // Step 2: Fetch loot history using the period_id
-      const lootUrl = `https://wowaudit.com/v1/loot_history/${periodId}`;
-      const lootResponse = await fetch(lootUrl, {
-        method: 'GET',
-        headers: {
-          'accept': 'application/json',
-          'Authorization': apiKey,
-        },
-      });
+      // Try multiple URL formats for best compatibility
+      let lootResponse = null;
+      const urlFormats = [
+        `https://wowaudit.com/v1/loot_history/${periodId}`,
+        `https://wowaudit.com/v1/loot_history?season_id=${periodId}`,
+        `https://wowaudit.com/v1/loot_history?period_id=${periodId}`,
+        `https://wowaudit.com/v1/loot_history?keystone_season_id=${periodId}`
+      ];
 
-      if (!lootResponse.ok) {
+      for (const url of urlFormats) {
+        try {
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'accept': 'application/json',
+              'Authorization': apiKey,
+            },
+          });
+          
+          if (response.ok) {
+            lootResponse = response;
+            await logEvent(env, 'info', 'API', `Loot Sync: Successfully fetched data using ${url}`);
+            break;
+          }
+        } catch (e) {
+          console.error(`Failed to fetch from ${url}:`, e);
+        }
+      }
+
+      if (!lootResponse) {
+        await logEvent(env, 'error', 'API', `Loot Sync: Failed all URL formats for ID ${periodId}`, { periodData });
         return new Response(
-          JSON.stringify({ error: `WoWAudit loot API error: ${lootResponse.status}` }),
-          { status: lootResponse.status, headers }
+          JSON.stringify({ error: `WoWAudit loot API error: Could not fetch loot history with ID ${periodId}` }),
+          { status: 400, headers }
         );
       }
 
