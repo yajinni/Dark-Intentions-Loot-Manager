@@ -171,8 +171,9 @@ const GEAR_SLOTS = [
   'Chest',     'Wrist',
   'Hands',     'Waist',
   'Legs',      'Feet',
-  'Ring',      'Trinket',
+  'finger',    'Trinket',
   'Main Hand', 'Off Hand',
+  'two_hand',  'one_hand',
   'Tier',      'Ranged',
 ];
 
