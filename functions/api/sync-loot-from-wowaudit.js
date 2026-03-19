@@ -141,9 +141,11 @@ export async function onRequest({ request, env }) {
 
       for (const item of historyItems) {
         // Skip loot with "Normal" difficulty
+        /* Temporarily disabled for testing
         if (item.difficulty && item.difficulty.toLowerCase() === 'normal') {
           continue;
         }
+        */
 
         // Only process and award GP for NEW items
         if (existingIds.has(item.rclootcouncil_id)) {
