@@ -46,17 +46,26 @@ export async function onRequest({ request, env }) {
       
       // Update Signups
       env.DB.prepare("UPDATE signups SET character_name = ? WHERE character_name = ?")
+        .bind(newName, oldName),
+      
+      // Update Attendance
+      env.DB.prepare("UPDATE attendance SET name = ? WHERE name = ?")
+        .bind(newName, oldName),
+
+      // Update Loot History
+      env.DB.prepare("UPDATE loot_history SET name = ? WHERE name = ?")
         .bind(newName, oldName)
     ];
 
     const results = await env.DB.batch(statements);
 
-    // results[0] -> EP logs, results[1] -> GP logs, results[2] -> Signups
-    const epChanges = results[0]?.meta?.changes ?? 0;
-    const gpChanges = results[1]?.meta?.changes ?? 0;
-    const signupChanges = results[2]?.meta?.changes ?? 0;
+    const epChanges      = results[0]?.meta?.changes ?? 0;
+    const gpChanges      = results[1]?.meta?.changes ?? 0;
+    const signupChanges  = results[2]?.meta?.changes ?? 0;
+    const attendChanges  = results[3]?.meta?.changes ?? 0;
+    const lootChanges    = results[4]?.meta?.changes ?? 0;
 
-    await logEvent(env, 'info', 'Admin', `Merged historical logs from orphan "${oldName}" into "${newName}" (${epChanges} EP logs, ${gpChanges} GP logs, ${signupChanges} signups).`);
+    await logEvent(env, 'info', 'Admin', `Merged "${oldName}" into "${newName}" (${epChanges} EP, ${gpChanges} GP, ${signupChanges} signups, ${attendChanges} attendance, ${lootChanges} loot).`);
 
     return new Response(JSON.stringify({ 
       success: true, 
