@@ -1103,6 +1103,14 @@ function populateGpBulk() {
   }
 }
 
+function formatSlotName(slot) {
+  if (!slot) return '';
+  if (slot === 'finger') return 'Finger';
+  if (slot === 'two_hand') return 'Two Hand';
+  if (slot === 'one_hand') return 'One Hand';
+  return slot;
+}
+
 function renderEpgpTable(gearValues) {
   const tbody = $('#epgp-tbody');
 
@@ -1110,7 +1118,7 @@ function renderEpgpTable(gearValues) {
   const lookup = {};
   gearValues.forEach(v => { lookup[v.slot_name] = v; });
 
-  // 4-column layout: 8 rows × (Slot | Value | Slot | Value)
+  // 4-column layout: 9 rows × (Slot | Value | Slot | Value)
   let html = '';
   for (let i = 0; i < GEAR_SLOTS.length; i += 2) {
     const leftSlot  = GEAR_SLOTS[i];
@@ -1120,7 +1128,7 @@ function renderEpgpTable(gearValues) {
 
     html += `
       <tr>
-        <td class="slot-name">${escHtml(leftSlot)}</td>
+        <td class="slot-name">${escHtml(formatSlotName(leftSlot))}</td>
         <td>
           <input
             type="number"
@@ -1131,7 +1139,7 @@ function renderEpgpTable(gearValues) {
             step="1"
           >
         </td>
-        <td class="slot-name">${escHtml(rightSlot)}</td>
+        <td class="slot-name">${escHtml(formatSlotName(rightSlot))}</td>
         <td>
           <input
             type="number"
