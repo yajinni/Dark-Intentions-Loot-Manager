@@ -66,8 +66,10 @@ export async function onRequest({ request, env }) {
 
       const periodData = await periodResponse.json();
 
-      // Extract season id from WoWAudit response (using keystone_season_id for loot mapping)
-      const periodId = periodData.keystone_season_id;
+      // Extract season id from WoWAudit response (using keystone_season_id with fallbacks)
+      const periodId = periodData.keystone_season_id || 
+                       periodData.current_season?.id || 
+                       periodData.current_period?.id;
 
       if (!periodId) {
         await logEvent(env, 'error', 'API', 'Loot Sync: Could not determine period ID.', { periodData });
