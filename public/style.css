@@ -1091,9 +1091,14 @@ body {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   max-width: 400px;
   width: 90%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-#transaction-history-modal .modal-content {
+#transaction-history-modal .modal-content,
+#log-details-modal .modal-content {
   max-width: 1000px;
 }
 
@@ -1110,6 +1115,12 @@ body {
   font-size: 18px;
   color: var(--color-gold);
   margin: 0;
+}
+
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .btn-close {
