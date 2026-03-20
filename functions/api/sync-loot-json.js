@@ -22,27 +22,41 @@ export async function onRequest({ request, env }) {
   try {
     const rawData = await request.json();
     
-    // The JSON structure is: { "Player-Realm": [ { item1 }, { item2 } ], ... }
-    if (!rawData || typeof rawData !== 'object') {
+    // 1. Flatten the JSON if it's nested under factionrealm
+    let playersData = rawData;
+    if (rawData.factionrealm && typeof rawData.factionrealm === 'object') {
+      playersData = {};
+      for (const realmData of Object.values(rawData.factionrealm)) {
+        if (typeof realmData === 'object') {
+          for (const [charKey, items] of Object.entries(realmData)) {
+            playersData[charKey] = items;
+          }
+        }
+      }
+    }
+
+    if (!playersData || typeof playersData !== 'object') {
       return new Response(JSON.stringify({ error: 'Invalid JSON format. Expected an object with character keys.' }), { status: 400, headers });
     }
 
-    // 1. Fetch Roster to map "Player-Realm" to character_id and name
+    // 2. Fetch Roster to map "Player-Realm" to character_id and name
     const { results: rosterRows } = await env.DB.prepare("SELECT character_id, name, realm FROM roster").all();
     const characterMap = new Map(); // Key: "name-realm" (normalized), Value: { id, name }
     for (const row of rosterRows) {
-      const key = `${row.name}-${row.realm}`.toLowerCase();
+      // RCLC strips spaces from realm names in keys (e.g. "Moon Guard" -> "MoonGuard")
+      const normalizedRealm = row.realm.replace(/\s+/g, '');
+      const key = `${row.name}-${normalizedRealm}`.toLowerCase();
       characterMap.set(key, { id: row.character_id, name: row.name });
     }
 
-    // 2. Fetch Gear Values for GP mapping
+    // 3. Fetch Gear Values for GP mapping
     const { results: gearRows } = await env.DB.prepare("SELECT slot_name, point_value FROM epgp_gear_values").all();
     const gearMap = new Map();
     for (const row of gearRows) {
       gearMap.set(row.slot_name.toLowerCase(), row.point_value);
     }
 
-    // 3. Fetch existing RCLootCouncil IDs to avoid duplicates
+    // 4. Fetch existing RCLootCouncil IDs to avoid duplicates
     const { results: existingLoot } = await env.DB.prepare("SELECT rclootcouncil_id FROM loot_history").all();
     const existingIds = new Set(existingLoot.map(l => l.rclootcouncil_id));
 
@@ -51,25 +65,29 @@ export async function onRequest({ request, env }) {
     const now = new Date().toISOString();
     const errors = [];
 
-    // 4. Process the data
+    // 5. Process the data
     const batchStatements = [];
     const gpStatements = [];
 
-    for (const [charKey, items] of Object.entries(rawData)) {
+    for (const [charKey, items] of Object.entries(playersData)) {
       if (!Array.isArray(items)) continue;
 
-      const charInfo = characterMap.get(charKey.toLowerCase());
+      // Normalize incoming key for matching (RCLC strips spaces from realms in keys)
+      const normalizedCharKey = charKey.replace(/\s+/g, '').toLowerCase();
+      const charInfo = characterMap.get(normalizedCharKey);
+      
+      // If we can't find the character in our roster, we can still record the loot for history,
+      // but we can't award GP.
       
       for (const item of items) {
         // Map RCLootCouncil fields
-        // Note: RCLC doesn't always have a single 'id', so we construct a unique one if missing
         const rclcId = item.id || item.lootCouncilID || `${charKey}-${item.itemID || item.itemID}-${item.date}-${item.time}`;
         
         if (existingIds.has(rclcId)) continue;
         
-        // Skip Normal difficulty if specified (RCLC usually has 'difficulty' field)
+        // Skip Normal difficulty if specified (User requirement)
         const difficulty = item.difficulty || item.difficultyID || '';
-        if (typeof difficulty === 'string' && difficulty.toLowerCase() === 'normal') {
+        if (typeof difficulty === 'string' && difficulty.toLowerCase().includes('normal')) {
           continue;
         }
 
@@ -85,17 +103,21 @@ export async function onRequest({ request, env }) {
           const response = item.response || '';
           const discarded = item.isDiscarded || false;
           
-          // Parse date/time (Format: MM/DD/YY and HH:MM:SS)
+          // Parse date/time
           let awardedAt = '';
           if (item.date && item.time) {
-             // Standardize MM/DD/YY HH:MM:SS to something ISO-ish if possible
-             // But we'll just store the string for now or convert to 20YY-MM-DD
-             const [m, d, y] = item.date.split('/');
-             const year = y && y.length === 2 ? `20${y}` : y;
-             awardedAt = `${year}-${m}-${d} ${item.time}`;
+             const parts = item.date.split('/');
+             if (parts.length === 3) {
+               if (parts[0].length === 4) { // YYYY/MM/DD
+                 awardedAt = `${parts[0]}-${parts[1]}-${parts[2]} ${item.time}`;
+               } else { // MM/DD/YY
+                 const year = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+                 awardedAt = `${year}-${parts[0]}-${parts[1]} ${item.time}`;
+               }
+             }
           }
 
-          // GP Award
+          // GP Award (Only if character matched)
           const slotKey = itemSlot.toLowerCase();
           const gpAmount = gearMap.get(slotKey) || 0;
 
@@ -117,7 +139,7 @@ export async function onRequest({ request, env }) {
                 difficulty, instance, boss, discarded, response_type
               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
-              rclcId,
+              rclcId.toString(),
               itemId,
               itemName,
               itemIcon,
@@ -134,14 +156,14 @@ export async function onRequest({ request, env }) {
             )
           );
           insertedCount++;
-          existingIds.add(rclcId); // Avoid duplicate in the same batch
+          existingIds.add(rclcId); 
         } catch (e) {
           errors.push(`Error processing item ${itemId} for ${charKey}: ${e.message}`);
         }
       }
     }
 
-    // 5. Execute Batch
+    // 6. Execute Batch
     if (batchStatements.length > 0) {
       await env.DB.batch([...gpStatements, ...batchStatements]);
     }
