@@ -117,9 +117,15 @@ export async function onRequest({ request, env }) {
         // Track whether this is a new entry or an update to fill missing fields
         const isNew = !existingIds.has(rclcId);
         
-        // Skip Normal difficulty if specified (User requirement)
-        const difficulty = item.difficulty || item.difficultyID || '';
-        if (typeof difficulty === 'string' && difficulty.toLowerCase().includes('normal')) {
+        // Skip Normal difficulty if specified (User requirement: 'normal' or ID 14)
+        const difficulty = (item.difficulty || item.difficultyID || '').toString();
+        if (difficulty.toLowerCase().includes('normal') || difficulty === "14") {
+          continue;
+        }
+
+        // Skip specific responses (User requirement: "Personal Loot - Non tradeable")
+        const response = item.response || '';
+        if (response === "Personal Loot - Non tradeable") {
           continue;
         }
 
@@ -232,10 +238,18 @@ export async function onRequest({ request, env }) {
       }
     }
 
-    // 6. Execute Batch
-    if (batchStatements.length > 0) {
-      await env.DB.batch([...gpStatements, ...batchStatements]);
-    }
+    // 6. Execute Batch and Purge
+    const allStatements = [...gpStatements, ...batchStatements];
+    
+    // Always add the purge to ensure existing records are removed even if no new items are synced
+    allStatements.push(env.DB.prepare(`
+      DELETE FROM loot_history 
+      WHERE (difficulty LIKE '%normal%' AND difficulty != 'Heroic')
+         OR difficulty = '14'
+         OR response = 'Personal Loot - Non tradeable'
+    `));
+
+    await env.DB.batch(allStatements);
 
     await logEvent(env, 'success', 'Loot', `Processed ${insertedCount + updatedCount} loot items (${insertedCount} new, ${updatedCount} updated, ${gpAwardedCount} GP)`, { insertedCount, updatedCount, gpAwardedCount, errors });
 
