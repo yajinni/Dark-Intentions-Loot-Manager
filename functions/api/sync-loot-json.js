@@ -95,6 +95,7 @@ export async function onRequest({ request, env }) {
     let gpAwardedCount = 0;
     const now = new Date().toISOString();
     const errors = [];
+    const insertedItems = [];
     
     // Simple cache to avoid redundant WoWhead requests during this sync
     const slotCache = new Map();
@@ -228,6 +229,7 @@ export async function onRequest({ request, env }) {
           
           if (isNew) {
             insertedCount++;
+            insertedItems.push({ name: itemName, char: charInfo ? charInfo.name : charKey, gp: gpAmount });
             existingIds.add(rclcId); 
           } else {
             updatedCount++;
@@ -259,6 +261,7 @@ export async function onRequest({ request, env }) {
       inserted: insertedCount,
       updated: updatedCount,
       gpAwarded: gpAwardedCount,
+      insertedItems: insertedItems,
       errors: errors.length > 0 ? errors : null
     }), { headers });
 
