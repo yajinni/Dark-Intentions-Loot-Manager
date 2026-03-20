@@ -212,8 +212,8 @@ export async function onRequest({ request, env }) {
               INSERT OR REPLACE INTO loot_history (
                 rclootcouncil_id, item_id, slot, 
                 character_id, awarded_at, 
-                difficulty, instance, boss, typeCode, response, note
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                difficulty, instance, boss, typeCode, response, note, gp_value
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               rclcId.toString(),
               itemId,
@@ -225,7 +225,8 @@ export async function onRequest({ request, env }) {
               boss,
               typeCode || '',
               response,
-              item.note || ''
+              item.note || '',
+              gpAmount
             )
           );
           

@@ -32,7 +32,7 @@ export async function onRequest({ request, env }) {
         SELECT
           lh.rclootcouncil_id, lh.item_id, lh.slot, lh.character_id,
           lh.awarded_at, lh.difficulty, lh.instance, lh.boss,
-          lh.typeCode, lh.response, lh.note,
+          lh.typeCode, lh.response, lh.note, lh.gp_value,
           r.name AS character_name, r.class AS character_class
         FROM loot_history lh
         LEFT JOIN roster r ON lh.character_id = r.character_id

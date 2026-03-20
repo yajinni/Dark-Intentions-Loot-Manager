@@ -16,6 +16,7 @@ export async function ensureTablesExist(env) {
     const hasAwardedByName = tableInfo.results && tableInfo.results.some(c => c.name === 'awarded_by_name');
     const hasTypeCode = tableInfo.results && tableInfo.results.some(c => c.name === 'typeCode');
     const hasResponse = tableInfo.results && tableInfo.results.some(c => c.name === 'response');
+    const hasGPValue = tableInfo.results && tableInfo.results.some(c => c.name === 'gp_value');
     
     // Only drop if it's very old. For missing columns, we'll ALTER.
     if (hasName || hasOldAwardedCol || hasAwardedByName) {
@@ -28,6 +29,9 @@ export async function ensureTablesExist(env) {
       }
       if (!hasResponse) {
         try { await env.DB.prepare("ALTER TABLE loot_history ADD COLUMN response TEXT").run(); } catch(e){}
+      }
+      if (!hasGPValue) {
+        try { await env.DB.prepare("ALTER TABLE loot_history ADD COLUMN gp_value INTEGER DEFAULT 0").run(); } catch(e){}
       }
     }
   } catch (e) { /* Table likely doesn't exist yet */ }
@@ -158,6 +162,7 @@ async function initializeDatabase(env) {
       typeCode                TEXT,
       response                TEXT,
       note                    TEXT,
+      gp_value                INTEGER DEFAULT 0,
       updated_at              TEXT DEFAULT (datetime('now'))
     );
 

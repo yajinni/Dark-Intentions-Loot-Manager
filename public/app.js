@@ -2095,7 +2095,10 @@ function renderBossesView(items) {
                     <a href="https://www.wowhead.com/item=${item.item_id}" class="loot-item-link" data-wh-icon-size="small">
                       ${escHtml(item.name || `Item #${item.item_id}`)}
                     </a>
-                    <span class="loot-slot-tag" style="font-size: 12px !important;">${escHtml(item.slot || item.typeCode || '')}</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      ${item.gp_value > 0 ? `<span class="loot-gp-badge">+${item.gp_value} GP</span>` : ''}
+                      <span class="loot-slot-tag" style="font-size: 12px !important;">${escHtml(item.slot || item.typeCode || '')}</span>
+                    </div>
                   </div>
                   <div class="loot-player-info" style="margin-top: 2px; display: flex; justify-content: space-between; align-items: baseline;">
                     <div>
