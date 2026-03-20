@@ -113,10 +113,8 @@ async function initializeDatabase(env) {
       instance                TEXT,
       boss                    TEXT,
       typeCode                TEXT,
+      response                TEXT,
       note                    TEXT,
-      wish_value              INTEGER DEFAULT 0,
-      bonus_ids               TEXT,
-      wish_data               TEXT,
       updated_at              TEXT DEFAULT (datetime('now'))
     );
 

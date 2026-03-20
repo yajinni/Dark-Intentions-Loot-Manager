@@ -123,11 +123,8 @@ CREATE TABLE IF NOT EXISTS loot_history (
   instance                TEXT,
   boss                    TEXT,
   typeCode                TEXT,
+  response                TEXT,
   note                    TEXT,
-  wish_value              INTEGER DEFAULT 0,
-  wish_value              INTEGER DEFAULT 0,
-  bonus_ids               TEXT,
-  wish_data               TEXT,
   updated_at              TEXT DEFAULT (datetime('now'))
 );
 

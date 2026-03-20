@@ -29,7 +29,11 @@ export async function onRequest({ request, env }) {
       const characterId = url.searchParams.get('character_id');
 
       let query = `
-        SELECT lh.*, r.name AS character_name, r.class AS character_class
+        SELECT
+          lh.rclootcouncil_id, lh.item_id, lh.slot, lh.character_id,
+          lh.awarded_at, lh.difficulty, lh.instance, lh.boss,
+          lh.typeCode, lh.response, lh.note,
+          r.name AS character_name, r.class AS character_class
         FROM loot_history lh
         LEFT JOIN roster r ON lh.character_id = r.character_id
       `;

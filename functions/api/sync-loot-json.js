@@ -134,6 +134,7 @@ export async function onRequest({ request, env }) {
           const instance = item.instance || item.zone || '';
           const boss = item.boss || item.encounter || '';
           const typeCode = item.typeCode || '';
+          const response = item.response || '';
 
           // FETCH SLOT FROM WOWHEAD XML
           let itemSlot = '';
@@ -201,8 +202,8 @@ export async function onRequest({ request, env }) {
               INSERT OR REPLACE INTO loot_history (
                 rclootcouncil_id, item_id, slot, 
                 character_id, awarded_at, 
-                difficulty, instance, boss, typeCode, note
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                difficulty, instance, boss, typeCode, response, note
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               rclcId.toString(),
               itemId,
@@ -213,6 +214,7 @@ export async function onRequest({ request, env }) {
               instance,
               boss,
               typeCode || '',
+              response,
               item.note || ''
             )
           );
