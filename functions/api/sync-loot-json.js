@@ -15,12 +15,13 @@ async function fetchWowheadData(itemId) {
     if (!response.ok) return { slot: '', tooltip: '' };
     
     const xml = await response.text();
-    // Parse <inventorySlot id="X">Slot Name</inventorySlot>
-    const slotMatch = xml.match(/<inventorySlot id="(\d+)">(.*?)<\/inventorySlot>/);
-    const tooltipMatch = xml.match(/<tooltip>(.*?)<\/tooltip>/s);
+    // Support self-closing <inventorySlot id="X"/> or full <inventorySlot id="X">Name</inventorySlot>
+    const slotMatch = xml.match(/<inventorySlot id="(\d+)"(?:\s*\/>|>(.*?)<\/inventorySlot>)/);
+    // Support both <tooltip> and <htmlTooltip>
+    const tooltipMatch = xml.match(/<(?:html)?Tooltip>(.*?)<\/(?:html)?Tooltip>/s);
     
     return {
-      slot: slotMatch ? slotMatch[2] : '',
+      slot: slotMatch ? (slotMatch[2] || '') : '',
       slotId: slotMatch ? slotMatch[1] : null,
       tooltip: tooltipMatch ? tooltipMatch[1] : ''
     };
@@ -149,9 +150,10 @@ export async function onRequest({ request, env }) {
 
             // High-precision logic for Slot ID 0
             if (data.slotId === "0") {
-              if (data.tooltip && data.tooltip.includes('Synthesize')) {
+              const tooltipLower = (data.tooltip || '').toLowerCase();
+              if (tooltipLower.includes('synthesize')) {
                 itemSlot = 'TOKEN';
-              } else if (data.tooltip && data.tooltip.includes('Decor')) {
+              } else if (tooltipLower.includes('decor')) {
                 itemSlot = 'DECOR';
               } else {
                 itemSlot = data.slot;
