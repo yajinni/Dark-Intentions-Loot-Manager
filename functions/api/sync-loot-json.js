@@ -69,8 +69,6 @@ export async function onRequest({ request, env }) {
     const batchStatements = [];
     const gpStatements = [];
 
-    const debugItems = [];
-
     for (const [charKey, items] of Object.entries(playersData)) {
       if (!Array.isArray(items)) continue;
 
@@ -82,8 +80,8 @@ export async function onRequest({ request, env }) {
         // Map RCLootCouncil fields
         const rclcId = item.id || item.lootCouncilID || `${charKey}-${item.itemID || item.itemID}-${item.date}-${item.time}`;
         
-        // Remove duplicate check temporarily to force update existing records with new ItemID logic
-        // if (existingIds.has(rclcId)) continue;
+        // Skip existing items to improve performance
+        if (existingIds.has(rclcId.toString())) continue;
         
         // Skip Normal difficulty if specified (User requirement)
         const difficulty = item.difficulty || item.difficultyID || '';
@@ -100,10 +98,6 @@ export async function onRequest({ request, env }) {
           const itemId = idMatch ? parseInt(idMatch[1], 10) : (item.itemID || item.itemId || 0);
           const itemName = nameMatch ? nameMatch[1] : (item.itemName || 'Unknown Item');
           
-          if (debugItems.length < 5) {
-            debugItems.push({ rclcId, itemId, itemName, lootWon: lootWon.substring(0, 50) + '...' });
-          }
-
           const itemSlot = item.itemSlot || '';
           const instance = item.instance || item.zone || '';
           const boss = item.boss || item.encounter || '';
@@ -156,7 +150,7 @@ export async function onRequest({ request, env }) {
             )
           );
           insertedCount++;
-          existingIds.add(rclcId); 
+          existingIds.add(rclcId.toString()); 
         } catch (e) {
           errors.push(`Error processing item ${rclcId} for ${charKey}: ${e.message}`);
         }
@@ -168,12 +162,11 @@ export async function onRequest({ request, env }) {
       await env.DB.batch([...gpStatements, ...batchStatements]);
     }
 
-    await logEvent(env, 'success', 'Loot', `Imported ${insertedCount} loot items from JSON file (${gpAwardedCount} GP awards)`, { insertedCount, gpAwardedCount, errors, debugPreview: debugItems });
+    await logEvent(env, 'success', 'Loot', `Imported ${insertedCount} loot items from JSON file (${gpAwardedCount} GP awards)`, { insertedCount, gpAwardedCount, errors });
 
     return new Response(JSON.stringify({
       success: true,
       message: `✓ Successfully imported ${insertedCount} loot items and awarded GP for ${gpAwardedCount} items.`,
-      debug: debugItems,
       inserted: insertedCount,
       gpAwarded: gpAwardedCount,
       errors: errors.length > 0 ? errors : null
