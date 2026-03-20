@@ -2010,7 +2010,7 @@ function renderLootContainer() {
   // Step 1: Group by Date (YYYY-MM-DD)
   const groupedByDate = {};
   currentLootItems.forEach(item => {
-    const date = (item.awarded_at || '1970-01-01').split('T')[0];
+    const date = (item.awarded_at || '1970-01-01').split(/[ T]/)[0];
     if (!groupedByDate[date]) groupedByDate[date] = [];
     groupedByDate[date].push(item);
   });
