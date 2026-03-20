@@ -146,7 +146,7 @@ export async function onRequest({ request, env }) {
 
           // FETCH SLOT FROM WOWHEAD XML
           let itemSlot = '';
-          if (typeCode === 'TOKEN') {
+          if (typeCode === 'TOKEN' || (item.itemSlot || '').toUpperCase() === 'TOKEN') {
             itemSlot = 'TOKEN';
           } else if (itemId > 0) {
             let data;
@@ -158,9 +158,9 @@ export async function onRequest({ request, env }) {
             }
 
             // High-precision logic for Slot ID 0
-            if (data.slotId === "0") {
+            if (data.slotId === "0" || data.slot === "Token") {
               const tooltipLower = (data.tooltip || '').toLowerCase();
-              if (tooltipLower.includes('synthesize')) {
+              if (tooltipLower.includes('synthesize') || data.slot === "Token") {
                 itemSlot = 'TOKEN';
               } else if (tooltipLower.includes('decor')) {
                 itemSlot = 'DECOR';
@@ -173,7 +173,7 @@ export async function onRequest({ request, env }) {
           }
 
           // Fallback to JSON slot if XML failed and it's not a TOKEN
-          if (!itemSlot && typeCode !== 'TOKEN') {
+          if (!itemSlot) {
             itemSlot = item.itemSlot || '';
           }
           
@@ -192,7 +192,9 @@ export async function onRequest({ request, env }) {
           }
 
           // GP Award (Only if character matched AND this is a NEW item)
-          const slotKey = itemSlot === 'TOKEN' ? 'tier token' : itemSlot.toLowerCase();
+          // Map both "TOKEN" and "tier token" to the "tier token" key in settings
+          const normalizedSlot = (itemSlot || '').toLowerCase();
+          const slotKey = (normalizedSlot === 'token' || normalizedSlot === 'tier token') ? 'tier token' : normalizedSlot;
           const gpAmount = gearMap.get(slotKey) || 0;
 
           if (isNew && charInfo && gpAmount > 0) {
