@@ -11,7 +11,16 @@ import { ensureTablesExist } from '../db-init.js';
 import { logEvent } from '../utils/logger.js';
 
 export async function onRequest({ request, env }) {
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+
+  if (request.method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers });
+  }
 
   // Ensure database tables exist on first use
   await ensureTablesExist(env);
@@ -201,5 +210,5 @@ export async function onRequest({ request, env }) {
     }
   }
 
-  return new Response('Method Not Allowed', { status: 405 });
+  return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers });
 }
