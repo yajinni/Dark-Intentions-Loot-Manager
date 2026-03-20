@@ -180,6 +180,11 @@ function classCss(className) {
   return CLASS_CSS[className.toLowerCase()] || '';
 }
 
+function getClassColor(className) {
+  if (!className) return '#fff';
+  return CLASS_COLORS[className.toLowerCase()] || '#fff';
+}
+
 // ── All 15 WoW gear slots (display order) ───────────────────────
 const GEAR_SLOTS = [
   'Head',             'Neck',
