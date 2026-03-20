@@ -92,6 +92,7 @@ export async function onRequest({ request, env }) {
     let insertedCount = 0;
     let gpAwardedCount = 0;
     const now = new Date().toISOString();
+    const errors = [];
     
     // Simple cache to avoid redundant WoWhead requests during this sync
     const slotCache = new Map();
