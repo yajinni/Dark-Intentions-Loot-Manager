@@ -81,7 +81,7 @@ VALUES
   ('signup_ep', '1'),
   ('on_time_ep', '1');
 
--- ─── Seed: All 18 WoW Gear Slots ─────────────────────────────
+-- ─── Seed: All 20 WoW Gear Slots ─────────────────────────────
 INSERT OR IGNORE INTO epgp_gear_values (slot_name, point_value) VALUES
   ('Head',             0),
   ('Neck',             0),
@@ -101,6 +101,8 @@ INSERT OR IGNORE INTO epgp_gear_values (slot_name, point_value) VALUES
   ('One-Hand',         0),
   ('Tier Token',       0),
   ('Held In Off-hand', 0),
+  ('TOKEN',            0),
+  ('DECOR',            0),
   ('Ranged',           0);
 
 -- ─── WoWAudit Period ──────────────────────────────────────────

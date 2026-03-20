@@ -170,6 +170,8 @@ async function initializeDatabase(env) {
       ('One-Hand',         0),
       ('Tier Token',       0),
       ('Held In Off-hand', 0),
+      ('TOKEN',            0),
+      ('DECOR',            0),
       ('Ranged',           0);
 
     CREATE TABLE IF NOT EXISTS historical_activity (

@@ -4,22 +4,29 @@ import { logEvent } from '../utils/logger.js';
 /**
  * Fetch item slot name from WoWhead XML
  * Example: <inventorySlot id="17">Two-Hand</inventorySlot>
+ * Returns { slot: string, tooltip: string }
  */
-async function fetchWowheadSlot(itemId) {
-  if (!itemId || itemId === 0) return '';
+async function fetchWowheadData(itemId) {
+  if (!itemId || itemId === 0) return { slot: '', tooltip: '' };
   
   try {
     const url = `https://www.wowhead.com/item=${itemId}&xml`;
     const response = await fetch(url);
-    if (!response.ok) return '';
+    if (!response.ok) return { slot: '', tooltip: '' };
     
     const xml = await response.text();
     // Parse <inventorySlot id="X">Slot Name</inventorySlot>
-    const match = xml.match(/<inventorySlot id="\d+">(.*?)<\/inventorySlot>/);
-    return match ? match[1] : '';
+    const slotMatch = xml.match(/<inventorySlot id="(\d+)">(.*?)<\/inventorySlot>/);
+    const tooltipMatch = xml.match(/<tooltip>(.*?)<\/tooltip>/s);
+    
+    return {
+      slot: slotMatch ? slotMatch[2] : '',
+      slotId: slotMatch ? slotMatch[1] : null,
+      tooltip: tooltipMatch ? tooltipMatch[1] : ''
+    };
   } catch (err) {
     console.error(`Error fetching WoWhead XML for item ${itemId}:`, err);
-    return '';
+    return { slot: '', tooltip: '' };
   }
 }
 
@@ -131,11 +138,25 @@ export async function onRequest({ request, env }) {
           if (typeCode === 'TOKEN') {
             itemSlot = 'TOKEN';
           } else if (itemId > 0) {
+            let data;
             if (slotCache.has(itemId)) {
-              itemSlot = slotCache.get(itemId);
+              data = slotCache.get(itemId);
             } else {
-              itemSlot = await fetchWowheadSlot(itemId);
-              slotCache.set(itemId, itemSlot);
+              data = await fetchWowheadData(itemId);
+              slotCache.set(itemId, data);
+            }
+
+            // High-precision logic for Slot ID 0
+            if (data.slotId === "0") {
+              if (data.tooltip && data.tooltip.includes('Synthesize')) {
+                itemSlot = 'TOKEN';
+              } else if (data.tooltip && data.tooltip.includes('Decor')) {
+                itemSlot = 'DECOR';
+              } else {
+                itemSlot = data.slot;
+              }
+            } else {
+              itemSlot = data.slot;
             }
           }
 
