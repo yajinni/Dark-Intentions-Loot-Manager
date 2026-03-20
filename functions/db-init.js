@@ -8,6 +8,15 @@
  * Keeping them in sync ensures fresh deployments work correctly.
  */
 export async function ensureTablesExist(env) {
+  // Migrate loot_history if it still has the old 'name' column
+  try {
+    const tableInfo = await env.DB.prepare("PRAGMA table_info(loot_history)").all();
+    if (tableInfo.results && tableInfo.results.some(c => c.name === 'name')) {
+      console.log('Detected old loot_history schema, dropping for recreation...');
+      await env.DB.prepare("DROP TABLE loot_history").run();
+    }
+  } catch (e) { /* Table likely doesn't exist yet */ }
+
   try {
     const criticalTables = ['attendance', 'system_logs', 'wowaudit_period'];
     for (const table of criticalTables) {
