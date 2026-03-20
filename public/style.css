@@ -452,6 +452,7 @@ body {
 .data-table thead th[data-sort="pr"],
 .pr-cell {
   text-align: center !important;
+  position: relative;
 }
 
 .data-table tbody tr {
@@ -1019,18 +1020,20 @@ body {
 }
 
 .expand-arrow {
-  display: inline-block;
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   transition: transform 0.18s;
   color: var(--color-gold-bright);
   font-size: 26px;
   width: 28px;
   text-align: center;
-  margin-right: 6px;
   vertical-align: middle;
 }
 
 .roster-row.expanded .expand-arrow {
-  transform: rotate(90deg);
+  transform: translateY(-50%) rotate(90deg);
 }
 
 /* ── Coming Soon ────────────────────────────────────────────────── */
