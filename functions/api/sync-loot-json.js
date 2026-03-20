@@ -244,8 +244,9 @@ export async function onRequest({ request, env }) {
     // Always add the purge to ensure existing records are removed even if no new items are synced
     allStatements.push(env.DB.prepare(`
       DELETE FROM loot_history 
-      WHERE (difficulty LIKE '%normal%' AND difficulty != 'Heroic')
-         OR difficulty = '14'
+      WHERE (LOWER(difficulty) LIKE '%normal%' AND LOWER(difficulty) NOT LIKE '%heroic%')
+         OR CAST(difficulty AS TEXT) = '14'
+         OR difficulty = 14
          OR response = 'Personal Loot - Non tradeable'
     `));
 
