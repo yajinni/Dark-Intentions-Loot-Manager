@@ -100,7 +100,7 @@
     transition: transform 0.2s, box-shadow 0.2s;
     display: flex;
     flex-direction: column;
-    font-size: 13px;
+    font-size: 14px;
 }
 
 .boss-card:hover {
@@ -126,12 +126,12 @@
 }
 
 .boss-instance-label {
-    font-size: 11px;
-    color: #888;
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    color: #fff;
+    font-size: 14px;
+    opacity: 0.5;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 500;
-    opacity: 0.8;
 }
 
 .boss-card-header .difficulty-badge {
@@ -174,8 +174,12 @@
     border-bottom: none;
 }
 
-.loot-entry:hover {
-    background: rgba(255, 255, 255, 0.02);
+.loot-note {
+    font-size: 11px;
+    color: #666;
+    font-style: italic;
+    margin-top: 4px;
+    opacity: 0.8;
 }
 
 .loot-icon {
@@ -237,6 +241,14 @@
     color: #666;
     text-transform: uppercase;
     border-bottom: 1px solid #333;
+}
+
+.raid-meta {
+    font-family: 'Cinzel', serif;
+    font-size: 1.2rem;
+    color: #fff;
+    font-weight: 700;
+    opacity: 0.5;
 }
 
 .loot-list-table td {

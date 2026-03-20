@@ -2105,7 +2105,7 @@ function renderBossesView(items) {
                   <div class="loot-player-info" style="margin-top: 2px;">
                     <span class="loot-player-name" style="color: ${getClassColor(item.character_class || getRosterMemberClass(item.character_name))}">${escHtml(item.character_name || 'Unknown')}</span>
                   </div>
-                  ${item.note ? `<div class="loot-note" style="font-size: 0.65rem; color: #666; font-style: italic; margin-top: 2px;">"${escHtml(item.note)}"</div>` : ''}
+                  ${item.note ? `<div class="loot-note">"${escHtml(item.note)}"</div>` : ''}
                 </div>
               </div>
             `).join('')}
