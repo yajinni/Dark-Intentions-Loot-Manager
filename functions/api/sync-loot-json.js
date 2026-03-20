@@ -91,6 +91,7 @@ export async function onRequest({ request, env }) {
     const existingIds = new Set(existingLoot.map(l => l.rclootcouncil_id));
 
     let insertedCount = 0;
+    let updatedCount = 0;
     let gpAwardedCount = 0;
     const now = new Date().toISOString();
     const errors = [];
@@ -111,10 +112,10 @@ export async function onRequest({ request, env }) {
       
       for (const item of items) {
         // Map RCLootCouncil fields
-        const rclcId = item.id || item.lootCouncilID || `${charKey}-${item.itemID || item.itemId || 0}-${item.date}-${item.time}`;
+        const rclcId = (item.id || item.lootCouncilID || `${charKey}-${item.itemID || item.itemId || 0}-${item.date}-${item.time}`).toString();
         
-        // Skip existing items to improve performance
-        if (existingIds.has(rclcId.toString())) continue;
+        // Track whether this is a new entry or an update to fill missing fields
+        const isNew = !existingIds.has(rclcId);
         
         // Skip Normal difficulty if specified (User requirement)
         const difficulty = item.difficulty || item.difficultyID || '';
@@ -183,11 +184,11 @@ export async function onRequest({ request, env }) {
              }
           }
 
-          // GP Award (Only if character matched)
+          // GP Award (Only if character matched AND this is a NEW item)
           const slotKey = itemSlot === 'TOKEN' ? 'tier token' : itemSlot.toLowerCase();
           const gpAmount = gearMap.get(slotKey) || 0;
 
-          if (charInfo && gpAmount > 0) {
+          if (isNew && charInfo && gpAmount > 0) {
             gpStatements.push(
               env.DB.prepare(`
                 INSERT INTO gp_log (name, gp, reason, timestamp)
@@ -218,8 +219,13 @@ export async function onRequest({ request, env }) {
               item.note || ''
             )
           );
-          insertedCount++;
-          existingIds.add(rclcId.toString()); 
+          
+          if (isNew) {
+            insertedCount++;
+            existingIds.add(rclcId); 
+          } else {
+            updatedCount++;
+          }
         } catch (e) {
           errors.push(`Error processing item ${rclcId} for ${charKey}: ${e.message}`);
         }
@@ -231,12 +237,13 @@ export async function onRequest({ request, env }) {
       await env.DB.batch([...gpStatements, ...batchStatements]);
     }
 
-    await logEvent(env, 'success', 'Loot', `Imported ${insertedCount} loot items from JSON file (${gpAwardedCount} GP awards)`, { insertedCount, gpAwardedCount, errors });
+    await logEvent(env, 'success', 'Loot', `Processed ${insertedCount + updatedCount} loot items (${insertedCount} new, ${updatedCount} updated, ${gpAwardedCount} GP)`, { insertedCount, updatedCount, gpAwardedCount, errors });
 
     return new Response(JSON.stringify({
       success: true,
-      message: `✓ Successfully imported ${insertedCount} loot items and awarded GP for ${gpAwardedCount} items.`,
+      message: `✓ Success: ${insertedCount} new items, ${updatedCount} records updated, ${gpAwardedCount} GP awarded.`,
       inserted: insertedCount,
+      updated: updatedCount,
       gpAwarded: gpAwardedCount,
       errors: errors.length > 0 ? errors : null
     }), { headers });
