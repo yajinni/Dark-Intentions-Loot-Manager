@@ -147,6 +147,7 @@ async function initializeDatabase(env) {
     UPDATE epgp_gear_values SET slot_name = 'One-Hand' WHERE slot_name = 'one_hand';
     UPDATE epgp_gear_values SET slot_name = 'Two-Hand' WHERE slot_name = 'two_hand';
     UPDATE epgp_gear_values SET slot_name = 'Tier Token' WHERE slot_name = 'Tier';
+    UPDATE epgp_gear_values SET slot_name = 'Tier Token' WHERE slot_name = 'Tier';
     DELETE FROM epgp_gear_values WHERE slot_name IN ('TOKEN', 'DECOR');
     INSERT OR IGNORE INTO epgp_gear_values (slot_name, point_value) VALUES ('Held In Off-hand', 0);
 
@@ -214,6 +215,7 @@ async function initializeDatabase(env) {
     -- Migrations
     ALTER TABLE loot_history ADD COLUMN instance TEXT;
     ALTER TABLE loot_history ADD COLUMN boss TEXT;
+    ALTER TABLE loot_history ADD COLUMN response TEXT;
   `;
 
   // Execute each statement separately
