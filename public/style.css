@@ -1013,6 +1013,20 @@ body {
   color: var(--color-gold);
 }
 
+.expand-arrow {
+  display: inline-block;
+  transition: transform 0.18s;
+  color: var(--color-gold-bright);
+  font-size: 14px;
+  width: 16px;
+  text-align: center;
+  margin-right: 4px;
+}
+
+.roster-row.expanded .expand-arrow {
+  transform: rotate(90deg);
+}
+
 /* ── Coming Soon ────────────────────────────────────────────────── */
 .coming-soon {
   flex: 1;

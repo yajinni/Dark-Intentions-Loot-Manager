@@ -361,7 +361,7 @@ function renderRoster(roster) {
 
     return `
       <tr class="roster-row" data-character="${escHtml(c.name)}">
-        <td>${pr}</td>
+        <td><span class="expand-arrow">▸</span> ${pr}</td>
         <td><span class="char-name ${css}">${escHtml(c.name)}</span></td>
         <td>${escHtml(c.realm || '—')}</td>
         <td class="${css}">${escHtml(c.class || '—')}</td>
@@ -396,6 +396,7 @@ function renderRoster(roster) {
   // Add click handlers for expandable rows
   $$('.roster-row').forEach(row => {
     row.addEventListener('click', () => {
+      row.classList.toggle('expanded');
       const charName = row.dataset.character;
       const detailRow = $(`#roster-char-${charName}`);
       if (detailRow) {
@@ -548,7 +549,7 @@ async function formatReasonWithLinks(reason) {
     const itemId = match.match(/item=(\d+)/)[1];
     const itemName = itemNames[itemId] || itemId;
     // Create link with item name (WoWhead tooltip will work based on the href URL)
-    links.push(`<a href="${match}" target="_blank" class="wowhead-link">${escHtml(itemName)}</a>`);
+    links.push(`<a href="${match}" target="_blank" data-wh-rename-link="false" class="wowhead-link">${escHtml(itemName)}</a>`);
     return placeholderPrefix + (links.length - 1) + placeholderSuffix;
   });
 
@@ -2047,7 +2048,6 @@ function renderLootContainer() {
     return `
       <div class="raid-date-section" data-date="${date}">
         <div class="raid-date-header" onclick="this.parentElement.classList.toggle('collapsed')">
-          <span class="collapse-icon">▼</span>
           <h2>${dateStr}</h2>
           <div class="raid-meta">${items.length} items dropped</div>
         </div>
@@ -2098,8 +2098,8 @@ function renderBossesView(items) {
                   </div>
                   <div class="loot-player-info" style="margin-top: 2px; display: flex; justify-content: space-between; align-items: baseline;">
                     <div>
-                      <span class="loot-player-name" style="color: ${getClassColor(item.character_class || getRosterMemberClass(item.character_name))}">&nbsp;&nbsp;&nbsp;${escHtml(item.character_name || 'Unknown')}</span>
-                      ${item.response ? `<span class="loot-response" style="margin-left: 8px; font-size: 17px; color: #aaa; font-style: italic;">(${escHtml(item.response)})</span>` : ''}
+                      <span class="loot-player-name" style="color: ${getClassColor(item.character_class || getRosterMemberClass(item.character_name))}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${escHtml(item.character_name || 'Unknown')}</span>
+                      ${item.response ? `<span class="loot-response" style="margin-left: 8px; font-size: 16px; color: #aaa; font-style: italic;">(${escHtml(item.response)})</span>` : ''}
                     </div>
                     ${item.note ? `<div class="loot-note" style="margin-top: 0;">"${escHtml(item.note)}"</div>` : ''}
                   </div>
