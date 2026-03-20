@@ -149,6 +149,7 @@ async function initializeDatabase(env) {
     UPDATE epgp_gear_values SET slot_name = 'One-Hand' WHERE slot_name = 'one_hand';
     UPDATE epgp_gear_values SET slot_name = 'Two-Hand' WHERE slot_name = 'two_hand';
     UPDATE epgp_gear_values SET slot_name = 'Tier Token' WHERE slot_name = 'Tier';
+    DELETE FROM epgp_gear_values WHERE slot_name IN ('TOKEN', 'DECOR');
     INSERT OR IGNORE INTO epgp_gear_values (slot_name, point_value) VALUES ('Held In Off-hand', 0);
 
     INSERT OR IGNORE INTO epgp_gear_values (slot_name, point_value) VALUES
@@ -170,8 +171,6 @@ async function initializeDatabase(env) {
       ('One-Hand',         0),
       ('Tier Token',       0),
       ('Held In Off-hand', 0),
-      ('TOKEN',            0),
-      ('DECOR',            0),
       ('Ranged',           0);
 
     CREATE TABLE IF NOT EXISTS historical_activity (

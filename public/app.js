@@ -175,7 +175,6 @@ const GEAR_SLOTS = [
   'Main Hand',        'Off Hand',
   'Two-Hand',         'One-Hand',
   'Tier Token',       'Held In Off-hand',
-  'TOKEN',            'DECOR',
   'Ranged',
 ];
 

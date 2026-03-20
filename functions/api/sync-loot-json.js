@@ -181,7 +181,7 @@ export async function onRequest({ request, env }) {
           }
 
           // GP Award (Only if character matched)
-          const slotKey = itemSlot.toLowerCase();
+          const slotKey = itemSlot === 'TOKEN' ? 'tier token' : itemSlot.toLowerCase();
           const gpAmount = gearMap.get(slotKey) || 0;
 
           if (charInfo && gpAmount > 0) {
