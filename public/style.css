@@ -209,15 +209,21 @@
   color: #cccccc !important;
 }
 
-[data-theme="yaj"] .coming-soon-icon,
-[data-theme="yaj"] .btn-icon {
+[data-theme="yaj"] .coming-soon-icon {
   filter: brightness(0) invert(0.8);
 }
 
-[data-theme="yaj"] .coming-soon-icon,
 [data-theme="yaj"] .btn-icon {
-  filter: brightness(0) invert(1);
+  filter: none !important;
+  color: #cccccc !important;
 }
+
+[data-theme="yaj"] .brand-guild,
+[data-theme="yaj"] .brand-sub {
+  color: #ffffff !important;
+}
+
+
 
 /* ── Reset ──────────────────────────────────────────────────────── */
 *, *::before, *::after { 
