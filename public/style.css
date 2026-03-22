@@ -146,11 +146,11 @@
 
 /* Yaj Theme (Geometric Stealth) */
 [data-theme="yaj"] {
-  --bg-primary:       #0c0c0c;
-  --bg-sidebar:       #121212;
-  --bg-card:          #181818;
-  --bg-input:         #1c1c1c;
-  --bg-dropdown:      #121212;
+  --bg-primary:       #1e1e2d;
+  --bg-sidebar:       #151521;
+  --bg-card:          #1b1b2a;
+  --bg-input:         #252538;
+  --bg-dropdown:      #151521;
 
   --accent-purple:    #cc0000;
   --accent-blue:      #ffffff;
