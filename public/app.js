@@ -1136,17 +1136,22 @@ function renderEpgpTable(gearValues) {
             step="1"
           >
         </td>
-        <td class="slot-name">${escHtml(formatSlotName(rightSlot))}</td>
-        <td>
-          <input
-            type="number"
-            class="gear-input"
-            data-slot="${escHtml(rightSlot)}"
-            value="${rightVal}"
-            min="0"
-            step="1"
-          >
-        </td>
+        ${rightSlot ? `
+          <td class="slot-name">${escHtml(formatSlotName(rightSlot))}</td>
+          <td>
+            <input
+              type="number"
+              class="gear-input"
+              data-slot="${escHtml(rightSlot)}"
+              value="${rightVal}"
+              min="0"
+              step="1"
+            >
+          </td>
+        ` : `
+          <td></td>
+          <td></td>
+        `}
       </tr>`;
   }
 

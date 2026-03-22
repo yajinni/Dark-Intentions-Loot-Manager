@@ -207,7 +207,8 @@ async function initializeDatabase(env) {
     UPDATE epgp_gear_values SET slot_name = 'Two-Hand' WHERE slot_name = 'two_hand';
     UPDATE epgp_gear_values SET slot_name = 'TOKEN' WHERE slot_name = 'Tier';
     UPDATE epgp_gear_values SET slot_name = 'TOKEN' WHERE slot_name = 'Tier Token';
-    DELETE FROM epgp_gear_values WHERE slot_name IN ('DECOR');
+    DELETE FROM epgp_gear_values WHERE slot_name IN ('DECOR', 'Ring', 'ring', '');
+    DELETE FROM epgp_gear_values WHERE slot_name IS NULL;
     INSERT OR IGNORE INTO epgp_gear_values (slot_name, point_value) VALUES ('Held In Off-hand', 0);
 
     INSERT OR IGNORE INTO epgp_gear_values (slot_name, point_value) VALUES
