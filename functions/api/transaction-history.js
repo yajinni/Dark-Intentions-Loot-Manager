@@ -52,7 +52,13 @@ export async function onRequest({ request, env }) {
       const transactions = [
         ...(epResult.results || []).map(t => ({ ...t, type: 'ep' })),
         ...(gpResult.results || []).map(t => ({ ...t, type: 'gp' })),
-      ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      ].sort((a, b) => {
+        const isInitialA = a.reason === 'Initial GP on roster sync';
+        const isInitialB = b.reason === 'Initial GP on roster sync';
+        if (isInitialA && !isInitialB) return 1;
+        if (!isInitialA && isInitialB) return -1;
+        return new Date(b.timestamp) - new Date(a.timestamp);
+      });
 
       return new Response(
         JSON.stringify({ transactions }),

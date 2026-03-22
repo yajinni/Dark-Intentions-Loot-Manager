@@ -2273,9 +2273,9 @@ function renderSignups(signups) {
 
     let summaryMessage = '';
     if (missedDeadline.length === 0) {
-      summaryMessage = `Good job! Everyone signed up early before the Monday 6 PM EST deadline.`;
+      summaryMessage = `Good job! Everyone signed up early before the Monday 6 AM EST deadline.`;
     } else {
-      summaryMessage = `Everyone signed up in time before the Monday 6 PM EST deadline except for: <span style="color: var(--color-gold); font-weight: 600;">${escHtml(missedDeadline.join(', '))}</span>`;
+      summaryMessage = `Everyone signed up in time before the Monday 6 AM EST deadline except for: <span style="color: var(--color-gold); font-weight: 600;">${escHtml(missedDeadline.join(', '))}</span>`;
     }
 
     html += `
