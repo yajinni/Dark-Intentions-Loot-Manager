@@ -2273,15 +2273,14 @@ function renderSignups(signups) {
     const epValue = epRecord ? `+${epRecord.ep_awarded} EP` : '+1 EP';
     
     // Logic for "Everyone except for"
-    const missedDeadline = records
-      .filter(r => !r.ep_awarded || r.ep_awarded === 0)
-      .map(r => r.character_name);
+    const missedDeadline = records.filter(r => !r.ep_awarded || r.ep_awarded === 0);
 
     let summaryMessage = '';
     if (missedDeadline.length === 0) {
       summaryMessage = `Good job! Everyone signed up early before the Monday 6 AM EST deadline.`;
     } else {
-      summaryMessage = `Everyone signed up in time before the Monday 6 AM EST deadline except for: <span style="color: var(--color-gold); font-weight: 600;">${escHtml(missedDeadline.join(', '))}</span>`;
+      const namesHtml = missedDeadline.map(r => `<span style="color: ${getClassColor(r.class)}; font-weight: 600;">${escHtml(r.character_name)}</span>`).join(', ');
+      summaryMessage = `Everyone signed up in time before the Monday 6 AM EST deadline except for: ${namesHtml}`;
     }
 
     html += `
@@ -2467,15 +2466,14 @@ function renderOnTime(snapshots) {
 
   let html = '';
   snapshots.forEach((snap) => {
-    const lateMembers = snap.members
-      .filter(m => !m.attended)
-      .map(m => m.character_name || m.name);
+    const lateMembers = snap.members.filter(m => !m.attended);
     
     let summaryMessage = '';
     if (lateMembers.length === 0) {
       summaryMessage = `Good job! Everyone was on time for the raid.`;
     } else {
-      summaryMessage = `Everyone was on time for the raid except for: <span style="color: var(--color-gold); font-weight: 600;">${escHtml(lateMembers.join(', '))}</span>`;
+      const namesHtml = lateMembers.map(m => `<span style="color: ${getClassColor(m.class)}; font-weight: 600;">${escHtml(m.character_name || m.name)}</span>`).join(', ');
+      summaryMessage = `Everyone was on time for the raid except for: ${namesHtml}`;
     }
 
     // EP Value bubble
