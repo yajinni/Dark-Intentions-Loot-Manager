@@ -2186,11 +2186,12 @@ $('#loot-file-input').addEventListener('change', async (e) => {
     });
 
     const jsonData = JSON.parse(fileContent);
-    const data = await apiFetch('/api/sync-loot-json', {
+    const response = await apiFetch('/api/sync-loot-json', {
       method: 'POST',
       body: JSON.stringify(jsonData)
     });
-
+    const data = await response.json();
+    
     if (data.success) {
       showMessage('loot', 'success', `✓ ${data.message}`);
       await loadLootHistory();
