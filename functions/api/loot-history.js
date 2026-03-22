@@ -34,7 +34,8 @@ export async function onRequest({ request, env }) {
           lh.awarded_at, lh.difficulty, lh.instance, lh.boss,
           lh.typeCode, lh.response, lh.note, lh.gp_value,
           COALESCE(r.name, lh.character_name) AS character_name, 
-          COALESCE(r.class, '') AS character_class
+          COALESCE(r.class, '') AS character_class,
+          (r.id IS NOT NULL) AS is_in_roster
         FROM loot_history lh
         LEFT JOIN roster r ON lh.character_id = r.character_id
       `;
