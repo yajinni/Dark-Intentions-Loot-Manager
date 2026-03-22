@@ -147,6 +147,7 @@
 /* Yaj Theme (Geometric Stealth) */
 [data-theme="yaj"] {
   --bg-primary:       #1e1e2d;
+  --bg-secondary:     #121212;
   --bg-sidebar:       #151521;
   --bg-card:          #1b1b2a;
   --bg-input:         #252538;
