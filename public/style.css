@@ -171,7 +171,17 @@
   --shadow-sm:        0 4px 12px rgba(0, 0, 0, 0.8);
   --shadow-md:        0 12px 36px rgba(0, 0, 0, 0.9);
   --shadow-glow:      0 0 15px rgba(204, 0, 0, 0.4);
-  --gradient-primary: linear-gradient(135deg, #cc0000 0%, #1a1a1a 100%);
+  --gradient-primary: #cc0000;
+}
+
+[data-theme="yaj"] .btn-primary {
+  background: #cc0000 !important;
+  background-image: none !important;
+}
+
+[data-theme="yaj"] .accent-glow,
+[data-theme="yaj"] .nav-item.active {
+  background-image: none !important;
 }
 
 /* ── Reset ──────────────────────────────────────────────────────── */
