@@ -201,6 +201,21 @@
     font-weight: 600;
 }
 
+.orphan-player {
+    text-decoration: line-through;
+    text-decoration-color: #ef4444;
+    opacity: 0.7;
+}
+
+.orphan-player::before {
+    content: '✕';
+    color: #ef4444;
+    font-weight: bold;
+    margin-right: 6px;
+    text-decoration: none !important;
+    display: inline-block;
+}
+
 .loot-player-info {
     font-family: var(--font-accent);
     font-size: 12px;
