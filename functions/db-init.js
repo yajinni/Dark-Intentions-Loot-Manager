@@ -26,19 +26,25 @@ export async function ensureTablesExist(env) {
     } else {
       // Incremental migrations
       if (!hasTypeCode) {
-        try { await env.DB.prepare("ALTER TABLE loot_history ADD COLUMN typeCode TEXT").run(); } catch(e){}
+        console.log('Migrating loot_history: adding typeCode column...');
+        await env.DB.prepare("ALTER TABLE loot_history ADD COLUMN typeCode TEXT").run();
       }
       if (!hasResponse) {
-        try { await env.DB.prepare("ALTER TABLE loot_history ADD COLUMN response TEXT").run(); } catch(e){}
+        console.log('Migrating loot_history: adding response column...');
+        await env.DB.prepare("ALTER TABLE loot_history ADD COLUMN response TEXT").run();
       }
       if (!hasGPValue) {
-        try { await env.DB.prepare("ALTER TABLE loot_history ADD COLUMN gp_value INTEGER DEFAULT 0").run(); } catch(e){}
+        console.log('Migrating loot_history: adding gp_value column...');
+        await env.DB.prepare("ALTER TABLE loot_history ADD COLUMN gp_value INTEGER DEFAULT 0").run();
       }
       if (!hasCharName) {
-        try { await env.DB.prepare("ALTER TABLE loot_history ADD COLUMN character_name TEXT").run(); } catch(e){}
+        console.log('Migrating loot_history: adding character_name column...');
+        await env.DB.prepare("ALTER TABLE loot_history ADD COLUMN character_name TEXT").run();
       }
     }
-  } catch (e) { /* Table likely doesn't exist yet */ }
+  } catch (e) {
+    console.error('Migration error in loot_history:', e.message);
+  }
 
   try {
     const criticalTables = ['loot_history', 'attendance', 'system_logs', 'wowaudit_period'];
