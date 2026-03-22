@@ -118,6 +118,7 @@ CREATE TABLE IF NOT EXISTS loot_history (
   item_id                 INTEGER NOT NULL,
   slot                    TEXT,
   character_id            INTEGER NOT NULL,
+  character_name          TEXT,
   awarded_at              TEXT,
   difficulty              TEXT,
   instance                TEXT,

@@ -17,6 +17,7 @@ export async function ensureTablesExist(env) {
     const hasTypeCode = tableInfo.results && tableInfo.results.some(c => c.name === 'typeCode');
     const hasResponse = tableInfo.results && tableInfo.results.some(c => c.name === 'response');
     const hasGPValue = tableInfo.results && tableInfo.results.some(c => c.name === 'gp_value');
+    const hasCharName = tableInfo.results && tableInfo.results.some(c => c.name === 'character_name');
     
     // Only drop if it's very old. For missing columns, we'll ALTER.
     if (hasName || hasOldAwardedCol || hasAwardedByName) {
@@ -32,6 +33,9 @@ export async function ensureTablesExist(env) {
       }
       if (!hasGPValue) {
         try { await env.DB.prepare("ALTER TABLE loot_history ADD COLUMN gp_value INTEGER DEFAULT 0").run(); } catch(e){}
+      }
+      if (!hasCharName) {
+        try { await env.DB.prepare("ALTER TABLE loot_history ADD COLUMN character_name TEXT").run(); } catch(e){}
       }
     }
   } catch (e) { /* Table likely doesn't exist yet */ }
@@ -155,6 +159,7 @@ async function initializeDatabase(env) {
       item_id                 INTEGER NOT NULL,
       slot                    TEXT,
       character_id            INTEGER NOT NULL,
+      character_name          TEXT,
       awarded_at              TEXT,
       difficulty              TEXT,
       instance                TEXT,

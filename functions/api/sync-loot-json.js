@@ -121,6 +121,9 @@ export async function onRequest({ request, env }) {
       const normalizedCharKey = charKey.replace(/\s+/g, '').toLowerCase();
       const charInfo = characterMap.get(normalizedCharKey);
       
+      // Extract original name from key (Name-Realm)
+      const charNameFallback = charKey.split('-')[0];
+      
       for (const item of items) {
         // Map RCLootCouncil fields
         const rclcId = (item.id || item.lootCouncilID || `${charKey}-${item.itemID || item.itemId || 0}-${item.date}-${item.time}`).toString();
@@ -227,14 +230,15 @@ export async function onRequest({ request, env }) {
             env.DB.prepare(`
               INSERT OR REPLACE INTO loot_history (
                 rclootcouncil_id, item_id, slot, 
-                character_id, awarded_at, 
+                character_id, character_name, awarded_at, 
                 difficulty, instance, boss, typeCode, response, note, gp_value
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `).bind(
               rclcId.toString(),
               itemId,
               itemSlot,
               charInfo ? charInfo.id : 0,
+              charInfo ? charInfo.name : charNameFallback,
               awardedAt,
               difficulty,
               instance,

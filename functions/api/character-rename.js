@@ -53,7 +53,7 @@ export async function onRequest({ request, env }) {
         .bind(newName, oldName),
 
       // Update Loot History
-      env.DB.prepare("UPDATE loot_history SET name = ? WHERE name = ?")
+      env.DB.prepare("UPDATE loot_history SET character_name = ? WHERE character_name = ?")
         .bind(newName, oldName)
     ];
 
