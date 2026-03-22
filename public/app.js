@@ -1271,8 +1271,8 @@ $('#give-bonus-btn').addEventListener('click', async () => {
       showMessage('epgp', 'success', `✓ EP awarded to ${selectedCharacters.length} member(s)`);
       $('#bonus-ep-input').value = '';
       $('#bonus-reason-input').value = '';
-      $('#bonus-date-input').value = '';
-      $('#bonus-date-input').classList.add('hidden');
+      // Reset to today's date
+      $('#bonus-date-input').value = new Date().toISOString().split('T')[0];
       $$('.bonus-checkbox').forEach(checkbox => { checkbox.checked = false; });
       $('#select-everyone-btn').innerHTML = '<span class="btn-icon">✓</span> Select Everyone';
       
@@ -1296,20 +1296,7 @@ $('#give-bonus-btn').addEventListener('click', async () => {
   }
 });
 
-// Enhanced Manual EP Awards: Toggle date picker
-if ($('#bonus-reason-input') && $('#bonus-date-input')) {
-  $('#bonus-reason-input').addEventListener('input', () => {
-    const val = $('#bonus-reason-input').value.trim();
-    if (window.specialReasons && (val === window.specialReasons.signup || val === window.specialReasons.ontime)) {
-      $('#bonus-date-input').classList.remove('hidden');
-      if (!$('#bonus-date-input').value) {
-        $('#bonus-date-input').value = new Date().toISOString().split('T')[0];
-      }
-    } else {
-      $('#bonus-date-input').classList.add('hidden');
-    }
-  });
-}
+// Enhanced Manual EP Awards: Date picker is now always visible
 
 // Edit GP - Select/Unselect Everyone Button
 $('#select-everyone-gp-btn').addEventListener('click', () => {
@@ -1354,6 +1341,14 @@ $('#give-gp-btn').addEventListener('click', async () => {
   btn.disabled = true;
 
   try {
+    const specialDate = $('#bulk-gp-date-input').value;
+    let finalTimestamp;
+    if (specialDate) {
+      finalTimestamp = new Date(specialDate + 'T12:00:00').toISOString();
+    } else {
+      finalTimestamp = new Date().toISOString();
+    }
+
     const response = await apiFetch('/api/gp-log', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1361,7 +1356,7 @@ $('#give-gp-btn').addEventListener('click', async () => {
         names: selectedCharacters,
         gp: gpAmount,
         reason: reason + ' (Manually Modified)',
-        timestamp: new Date().toISOString(),
+        timestamp: finalTimestamp,
       }),
     });
 
@@ -1371,6 +1366,8 @@ $('#give-gp-btn').addEventListener('click', async () => {
       showMessage('epgp', 'success', `✓ GP awarded to ${selectedCharacters.length} member(s)`);
       $('#bulk-gp-input').value = '';
       $('#bulk-gp-reason-input').value = '';
+      // Reset to today's date
+      $('#bulk-gp-date-input').value = new Date().toISOString().split('T')[0];
       $$('.gp-bulk-checkbox').forEach(checkbox => { checkbox.checked = false; });
       $('#select-everyone-gp-btn').innerHTML = '<span class="btn-icon">✓</span> Select Everyone';
       await loadRoster();
@@ -2767,6 +2764,12 @@ function initTheme() {
 async function init() {
   initTheme();
   await loadSession();
+  
+  // Set default dates for EP/GP manual awards
+  const today = new Date().toISOString().split('T')[0];
+  if ($('#bonus-date-input')) $('#bonus-date-input').value = today;
+  if ($('#bulk-gp-date-input')) $('#bulk-gp-date-input').value = today;
+
   tabLoaded.roster = true;
   loadRoster();
 }
