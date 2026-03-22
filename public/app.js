@@ -2133,7 +2133,7 @@ function renderBossesView(items) {
                       ${escHtml(item.name || `Item #${item.item_id}`)}
                     </a>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                      ${item.gp_value > 0 ? `<span class="loot-gp-badge">+${item.gp_value} GP</span>` : ''}
+                      ${(item.gp_value !== null && item.gp_value !== undefined) ? `<span class="loot-gp-badge">+${item.gp_value} GP</span>` : ''}
                       <span class="loot-slot-tag" style="font-size: 12px !important;">${escHtml(item.slot || item.typeCode || '')}</span>
                     </div>
                   </div>
