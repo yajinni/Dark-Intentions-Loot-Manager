@@ -85,8 +85,8 @@
   --gradient-primary: linear-gradient(135deg, #ff4d4d 0%, #a82e2e 100%);
 }
 
-/* Standard Theme (Gold & Dark Blue - Copy of original Version 1) */
-[data-theme="standard"] {
+/* Original Theme (Gold & Dark Blue - Copy of original Version 1) */
+[data-theme="original"] {
   --bg-primary:       #1e1e2d;
   --bg-sidebar:       #151521;
   --bg-card:          #1b1b2a;
@@ -111,7 +111,7 @@
   --shadow-sm:        0 4px 10px rgba(0, 0, 0, 0.4);
   --shadow-md:        0 10px 30px rgba(0, 0, 0, 0.5);
   --shadow-glow:      0 0 10px rgba(200, 168, 75, 0.2);
-  --gradient-primary: linear-gradient(135deg, #c8a84b 0%, #8b6e2a 100%);
+  --gradient-primary: linear-gradient(135deg, #c8a84b 0%, #d4af37 100%);
 }
 
 /* Moon Theme (Translucent/Glassy) */
@@ -221,6 +221,16 @@
 [data-theme="yaj"] .brand-guild,
 [data-theme="yaj"] .brand-sub {
   color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+[data-theme="yaj"] .switch .slider {
+  background-color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="yaj"] .switch input:checked + .slider {
+  background-color: #cccccc !important;
 }
 
 

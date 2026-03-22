@@ -2830,7 +2830,19 @@ $('#create-user-submit-btn').addEventListener('click', async () => {
 
 // ── Theme Handling ─────────────────────────────────────────────
 function initTheme() {
-  const savedTheme = localStorage.getItem('di-theme') || 'lumina-light';
+  let savedTheme = localStorage.getItem('di-theme') || 'lumina-light';
+  
+  // Migration for legacy themes
+  const migrationMap = {
+    'classic': 'original',
+    'lumina': 'lumina-light',
+    'standard': 'original'
+  };
+  if (migrationMap[savedTheme]) {
+    savedTheme = migrationMap[savedTheme];
+    localStorage.setItem('di-theme', savedTheme);
+  }
+
   document.documentElement.setAttribute('data-theme', savedTheme);
   const themeSelect = $('#theme-select');
   if (themeSelect) {
