@@ -2440,48 +2440,59 @@ async function loadOnTime() {
 
     if (!data.success) throw new Error(data.error || 'Failed to load');
 
-    if (data.snapshots.length === 0) {
-      container.innerHTML = '<div class="empty-row text-center" style="padding: 20px;">No attendance data recorded yet.</div>';
-      return;
-    }
-
-    let html = '';
-    data.snapshots.forEach((snap) => {
-      const lateMembers = snap.members
-        .filter(m => !m.attended)
-        .map(m => m.character_name || m.name);
-      
-      let summaryMessage = '';
-      if (lateMembers.length === 0) {
-        summaryMessage = `Good job! Everyone was on time for the raid.`;
-      } else {
-        summaryMessage = `Everyone was on time for the raid except for: <span style="color: var(--color-gold); font-weight: 600;">${escHtml(lateMembers.join(', '))}</span>`;
-      }
-
-      // EP Value bubble
-      const epValue = '+1 EP';
-
-      html += `
-        <div class="on-time-raid-section" style="margin-bottom: 20px; border: 1px solid var(--color-border); border-radius: 8px; background: rgba(255,255,255,0.02); overflow: hidden;">
-          <div class="on-time-raid-header" style="padding: 18px 20px; background: rgba(0,0,0,0.15);">
-            <div style="margin-bottom: 8px;">
-              <strong style="font-size: 16px; color: #fff;">Raid Date: ${formatDateWithDay(snap.date)}</strong>
-            </div>
-            <div style="font-size: 16px; color: var(--color-text); line-height: 1.5; font-weight: 500; display: flex; align-items: center;">
-              <span class="ep-bubble" style="margin-right: 12px;">${epValue}</span>
-              <span>${summaryMessage}</span>
-            </div>
-          </div>
-        </div>
-      `;
-    });
-    
-    container.innerHTML = html;
+    renderOnTime(data.snapshots || []);
 
     } catch (err) {
       container.innerHTML = `<div class="empty-row text-center text-error" style="padding: 20px;">Error: ${escHtml(err.message)}</div>`;
     }
 }
+
+/**
+ * Render On Time history items
+ */
+function renderOnTime(snapshots) {
+  const container = $('#attendance-container');
+  if (!container) return;
+
+  if (snapshots.length === 0) {
+    container.innerHTML = '<div class="empty-row text-center" style="padding: 20px;">No attendance data recorded yet.</div>';
+    return;
+  }
+
+  let html = '';
+  snapshots.forEach((snap) => {
+    const lateMembers = snap.members
+      .filter(m => !m.attended)
+      .map(m => m.character_name || m.name);
+    
+    let summaryMessage = '';
+    if (lateMembers.length === 0) {
+      summaryMessage = `Good job! Everyone was on time for the raid.`;
+    } else {
+      summaryMessage = `Everyone was on time for the raid except for: <span style="color: var(--color-gold); font-weight: 600;">${escHtml(lateMembers.join(', '))}</span>`;
+    }
+
+    // EP Value bubble
+    const epValue = '+1 EP';
+
+    html += `
+      <div class="on-time-raid-section" style="margin-bottom: 20px; border: 1px solid var(--color-border); border-radius: 8px; background: rgba(255,255,255,0.02); overflow: hidden;">
+        <div class="on-time-raid-header" style="padding: 18px 20px; background: rgba(0,0,0,0.15);">
+          <div style="margin-bottom: 8px;">
+            <strong style="font-size: 16px; color: #fff;">Raid Date: ${formatDateWithDay(snap.date)}</strong>
+          </div>
+          <div style="font-size: 16px; color: var(--color-text); line-height: 1.5; font-weight: 500; display: flex; align-items: center;">
+            <span class="ep-bubble" style="margin-right: 12px;">${epValue}</span>
+            <span>${summaryMessage}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+}
+
 
 // ================================================================
 //  AUTHENTICATION & USER MANAGEMENT
