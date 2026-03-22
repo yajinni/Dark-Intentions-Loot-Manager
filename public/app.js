@@ -2732,7 +2732,7 @@ $('#create-user-submit-btn').addEventListener('click', async () => {
 
 // ── Theme Handling ─────────────────────────────────────────────
 function initTheme() {
-  let savedTheme = localStorage.getItem('di-theme') || 'lumina-light';
+  let savedTheme = localStorage.getItem('di-theme') || 'yaj';
   
   // Migration for legacy themes
   const migrationMap = {
