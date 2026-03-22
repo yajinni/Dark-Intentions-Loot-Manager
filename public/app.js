@@ -2446,101 +2446,37 @@ async function loadOnTime() {
     }
 
     let html = '';
-    data.snapshots.forEach((snap, index) => {
-      const presentCount = snap.members.filter(m => m.attended).length;
-      const totalCount = snap.members.length;
-      const dateStr = new Date(snap.date).toLocaleString();
+    data.snapshots.forEach((snap) => {
+      const lateMembers = snap.members
+        .filter(m => !m.attended)
+        .map(m => m.character_name || m.name);
       
-      // First one expanded, others collapsed
-      const collapsedClass = index === 0 ? '' : 'collapsed';
-      const displayStyle = index === 0 ? '' : 'style="display: none;"';
-
-      const members = snap.members;
-      let rowsHtml = '';
-      for (let j = 0; j < members.length; j += 2) {
-        const m1 = members[j];
-        const m2 = members[j + 1];
-
-        const getCellHtml = (m) => {
-          if (!m) return '<td></td><td></td><td></td>';
-          const className = classCss(m.class);
-          const statusClass = m.attended ? 'status-present' : 'status-absent';
-          const statusText = m.attended ? 'On Time' : 'Late/Absent';
-          const epText = m.attended ? '<span style="color: #4CAF50; font-weight: bold;">+1</span>' : '<span style="color: #888; font-size: 0.85em;">—</span>';
-
-          return `
-            <td><strong class="${className}">${escHtml(m.name)}</strong></td>
-            <td class="${statusClass}">${statusText}</td>
-            <td>${epText}</td>
-          `;
-        };
-
-        rowsHtml += `
-          <tr>
-            ${getCellHtml(m1)}
-            <td style="border-left: 2px solid rgba(255,255,255,0.1); padding: 0; width: 0;"></td>
-            ${getCellHtml(m2)}
-          </tr>
-        `;
+      let summaryMessage = '';
+      if (lateMembers.length === 0) {
+        summaryMessage = `Good job! Everyone was on time for the raid.`;
+      } else {
+        summaryMessage = `Everyone was on time for the raid except for: <span style="color: var(--color-gold); font-weight: 600;">${escHtml(lateMembers.join(', '))}</span>`;
       }
 
+      // EP Value bubble
+      const epValue = '+1 EP';
+
       html += `
-        <div class="collapsible-section" style="margin-bottom: 10px;">
-          <button class="collapsible-header ${collapsedClass}" data-target="attendance-${index}" style="width: 100%; text-align: left; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; color: #e1e1e6;">
-            <span class="collapse-icon">${index === 0 ? '▼' : '▶'}</span>
-            <strong style="margin-left: 10px; font-size: 1.1em;">Raid Date: ${formatDateWithDay(snap.date)} <span style="font-weight: normal; font-size: 0.9em; color: #aaa;">(${presentCount} / ${totalCount} On Time)</span></strong>
-          </button>
-          <div id="attendance-${index}" class="collapsible-content" ${displayStyle}>
-            <table class="data-table" style="table-layout: fixed; width: 100%;">
-              <colgroup>
-                <col style="width: 25%;">
-                <col style="width: 15%;">
-                <col style="width: 10%;">
-                <col style="width: 2px;">
-                <col style="width: 25%;">
-                <col style="width: 15%;">
-                <col style="width: 10%;">
-              </colgroup>
-              <thead>
-                <tr>
-                  <th>Character</th>
-                  <th>Status</th>
-                  <th>EP</th>
-                  <th style="border-left: 2px solid rgba(255,255,255,0.1); padding: 0;"></th>
-                  <th>Character</th>
-                  <th>Status</th>
-                  <th>EP</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rowsHtml}
-              </tbody>
-            </table>
+        <div class="on-time-raid-section" style="margin-bottom: 20px; border: 1px solid var(--color-border); border-radius: 8px; background: rgba(255,255,255,0.02); overflow: hidden;">
+          <div class="on-time-raid-header" style="padding: 18px 20px; background: rgba(0,0,0,0.15);">
+            <div style="margin-bottom: 8px;">
+              <strong style="font-size: 16px; color: #fff;">Raid Date: ${formatDateWithDay(snap.date)}</strong>
+            </div>
+            <div style="font-size: 16px; color: var(--color-text); line-height: 1.5; font-weight: 500; display: flex; align-items: center;">
+              <span class="ep-bubble" style="margin-right: 12px;">${epValue}</span>
+              <span>${summaryMessage}</span>
+            </div>
           </div>
         </div>
       `;
-      });
-      
-      container.innerHTML = html;
-
-      // Add click listeners to new collapsible headers
-      container.querySelectorAll('.collapsible-header').forEach(header => {
-        header.addEventListener('click', () => {
-          const isCollapsed = header.classList.contains('collapsed');
-          const targetId = header.getAttribute('data-target');
-          const targetContent = document.getElementById(targetId);
-          
-          if (isCollapsed) {
-            header.classList.remove('collapsed');
-            header.querySelector('.collapse-icon').textContent = '▼';
-            targetContent.style.display = 'block';
-          } else {
-            header.classList.add('collapsed');
-            header.querySelector('.collapse-icon').textContent = '▶';
-            targetContent.style.display = 'none';
-          }
-        });
-      });
+    });
+    
+    container.innerHTML = html;
 
     } catch (err) {
       container.innerHTML = `<div class="empty-row text-center text-error" style="padding: 20px;">Error: ${escHtml(err.message)}</div>`;
