@@ -2293,7 +2293,7 @@ async function loadSignups() {
     }
     
     const signups = data.signups || [];
-    renderSignups(signups);
+    renderSignups(signups, data.current_raid_id);
   } catch (err) {
     showMessage('signups', 'error', `✗ Error loading signups: ${err.message}`);
     container.innerHTML = `<div class="empty-row text-center" style="padding: 20px; color: #ff4444;">Error: ${escHtml(err.message)}</div>`;
@@ -2308,7 +2308,7 @@ function getSignupStatusClass(status) {
   return 'status-tentative';
 }
 
-function renderSignups(signups) {
+function renderSignups(signups, currentRaidId) {
   const container = $('#signups-container');
   if (!container) return;
 
@@ -2317,22 +2317,23 @@ function renderSignups(signups) {
     return;
   }
 
-  // Group by Date
+  // Group by raid_id (more accurate than date string)
   const grouped = {};
   signups.forEach(s => {
-    if (!grouped[s.date]) {
-      grouped[s.date] = [];
+    const key = s.raid_id || s.date;
+    if (!grouped[key]) {
+      grouped[key] = { date: s.date, raid_id: s.raid_id, records: [] };
     }
-    grouped[s.date].push(s);
+    grouped[key].records.push(s);
   });
 
-  // Sort dates descending
-  const dates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+  // Sort by date descending
+  const raidKeys = Object.keys(grouped).sort((a, b) => new Date(grouped[b].date) - new Date(grouped[a].date));
 
   let html = '';
-  dates.forEach((date, i) => {
-    const records = grouped[date];
-    const isNextRaid = i === 0; // First date in sorted list (descending)
+  raidKeys.forEach(key => {
+    const { date, raid_id, records } = grouped[key];
+    const isNextRaid = currentRaidId && String(raid_id) === String(currentRaidId);
     
     // Determine EP value for the bubble
     const epRecord = records.find(r => r.ep_awarded > 0);

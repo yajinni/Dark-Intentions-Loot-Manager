@@ -16,27 +16,20 @@ export async function onRequest({ request, env }) {
 
   if (request.method === 'GET') {
     try {
-      // Get current raid ID from settings
+      // Get current (next) raid ID from settings for frontend highlighting
       const raidSetting = await env.DB.prepare(
         `SELECT value FROM settings WHERE key = 'current_raid_id'`
       ).first();
 
-      let records;
-      if (raidSetting?.value) {
-        // Only return signups for the current next raid
-        records = await env.DB.prepare(
-          `SELECT * FROM signups WHERE raid_id = ? ORDER BY character_name ASC`
-        ).bind(raidSetting.value).all();
-      } else {
-        // Fallback: return the most recent raid's signups
-        records = await env.DB.prepare(
-          `SELECT * FROM signups ORDER BY date DESC, character_name ASC LIMIT 100`
-        ).all();
-      }
+      // Return ALL signups (history) sorted by date descending
+      const records = await env.DB.prepare(
+        `SELECT * FROM signups ORDER BY date DESC, character_name ASC`
+      ).all();
 
       return new Response(
         JSON.stringify({
           success: true,
+          current_raid_id: raidSetting?.value || null,
           signups: records.results || [],
         }),
         { status: 200, headers }
