@@ -120,15 +120,23 @@ export async function onRequest({ request, env }) {
             }
             insertedCount++;
 
-            // Award EP Bonus if status is not 'Unknown', and ep has not been awarded yet.
-            if (status !== 'Unknown' && epAwarded === 0) {
+            // Award EP Bonus if status is not 'Unknown', ep has not been awarded yet,
+            // AND the raid date is within the last 7 days (the "previous week's raid").
+            const raidDateObj = new Date(raidDate);
+            const now = new Date();
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(now.getDate() - 7);
+
+            const isWithinLastWeek = raidDateObj >= sevenDaysAgo && raidDateObj <= now;
+
+            if (status !== 'Unknown' && epAwarded === 0 && isWithinLastWeek) {
               const rosterChar = await env.DB.prepare(
                 `SELECT id FROM roster WHERE name = ?`
               ).bind(character.name).first();
 
               if (rosterChar) {
                 // INSERT INTO ep_log ONLY (total is calculated from logs in Roster API)
-                const reason = `${signupReason} [${raidDate}]`;
+                const reason = `${signupReason} [${raidDate.split('T')[0]}]`;
                 
                 await env.DB.prepare(
                   `INSERT INTO ep_log (name, ep, reason, timestamp) VALUES (?, ?, ?, datetime('now'))`
