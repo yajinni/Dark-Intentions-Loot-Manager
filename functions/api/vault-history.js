@@ -26,7 +26,20 @@ export async function onRequest({ request, env }) {
         .first();
       const minVaultLevel = parseInt(minVaultLevelSetting?.value, 10) || 272;
 
-      // 2. Fetch all historical activity sorted by period_id DESC
+      // 2. Get current period anchor from wowaudit_period
+      const periodRow = await env.DB.prepare("SELECT data FROM wowaudit_period ORDER BY id DESC LIMIT 1").first();
+      let anchor = null;
+      if (periodRow) {
+        const pData = JSON.parse(periodRow.data);
+        if (pData.current_season) {
+          anchor = {
+            id: pData.current_season.id,
+            date: new Date(pData.current_season.start_date)
+          };
+        }
+      }
+
+      // 3. Fetch all historical activity sorted by period_id DESC
       const { results } = await env.DB
         .prepare("SELECT period_id, data FROM historical_activity ORDER BY period_id DESC")
         .all();
@@ -35,9 +48,16 @@ export async function onRequest({ request, env }) {
         const data = JSON.parse(row.data);
         const characters = data.characters || [];
         
-        // Extract start_date if available in the historical_data blob
-        // Note: WoWAudit historical_data usually includes period info
-        const startDate = data.period?.start_date || `Period ${row.period_id}`;
+        let displayDate = `Period ${row.period_id}`;
+        
+        // Calculate date: anchor_date - (anchor_id - current_id) * 7 days
+        if (anchor) {
+          const diffWeeks = anchor.id - row.period_id;
+          const weekDate = new Date(anchor.date);
+          weekDate.setDate(weekDate.getDate() - (diffWeeks * 7));
+          // If we are looking at the period that just ended, the "previous Tuesday" is the start of THAT period.
+          displayDate = weekDate.toISOString().split('T')[0];
+        }
 
         const groups = {
           no_vault: [],
@@ -54,18 +74,22 @@ export async function onRequest({ request, env }) {
           if (dungeons.option_2 >= minVaultLevel) slotsFilled++;
           if (dungeons.option_3 >= minVaultLevel) slotsFilled++;
 
-          if (slotsFilled === 0) groups.no_vault.push(char.name);
-          else if (slotsFilled === 1) groups.vault_1.push(char.name);
-          else if (slotsFilled === 2) groups.vault_2.push(char.name);
-          else if (slotsFilled === 3) groups.vault_3.push(char.name);
+          const charObj = { name: char.name, class: char.class || 'Unknown' };
+
+          if (slotsFilled === 0) groups.no_vault.push(charObj);
+          else if (slotsFilled === 1) groups.vault_1.push(charObj);
+          else if (slotsFilled === 2) groups.vault_2.push(charObj);
+          else if (slotsFilled === 3) groups.vault_3.push(charObj);
         });
 
         // Sort names alphabetically
-        Object.keys(groups).forEach(key => groups[key].sort());
+        Object.keys(groups).forEach(key => {
+          groups[key].sort((a, b) => a.name.localeCompare(b.name));
+        });
 
         return {
           period_id: row.period_id,
-          date: startDate,
+          date: displayDate,
           groups
         };
       });

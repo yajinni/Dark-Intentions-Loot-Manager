@@ -2873,12 +2873,15 @@ function renderVaultTab(weeks) {
   container.innerHTML = weeks.map(week => {
     const { date, groups } = week;
     
-    const renderColumn = (title, names) => `
+    const renderColumn = (title, characters) => `
       <div class="vault-column">
         <h3>${title}</h3>
         <div class="vault-names-list">
-          ${names.length > 0 
-            ? names.map(name => `<div class="vault-name">${escHtml(name)}</div>`).join('') 
+          ${characters.length > 0 
+            ? characters.map(c => {
+                const color = typeof getClassColor === 'function' ? getClassColor(c.class) : '#fff';
+                return `<div class="vault-name" style="color: ${color}">${escHtml(c.name)}</div>`;
+              }).join('') 
             : '<div class="vault-empty-text">None</div>'}
         </div>
       </div>
