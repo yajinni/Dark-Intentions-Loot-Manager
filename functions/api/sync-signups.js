@@ -160,6 +160,16 @@ export async function onRequest({ request, env }) {
         console.error('Failed to prune system_logs:', e);
       }
 
+      // Delete any future raid signups beyond the current next raid (user does not want future data)
+      try {
+        await env.DB.prepare(
+          "DELETE FROM signups WHERE date > ? AND raid_id != ?"
+        ).bind(raidDate, String(raidId)).run();
+        console.log('[Maintenance] Cleaned up future signup records beyond next raid');
+      } catch(e) {
+        console.error('Failed to prune future signups:', e);
+      }
+
       const msg = `✓ Updated ${insertedCount} signups. Awarded ${bonusesAwarded} Early Sign Up Bonuses!`;
       const logMsg = `Awarded ${signupEp} EP to ${bonusesAwarded} characters (Reason: ${signupReason})`;
       await logEvent(env, 'success', 'Roster', logMsg, { names: rewardedNames, inserted: insertedCount, bonuses: bonusesAwarded });
