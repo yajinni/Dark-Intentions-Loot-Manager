@@ -55,11 +55,13 @@ export async function onRequest({ request, env }) {
         
         let displayDate = `Period ${row.period_id}`;
         
-        // Calculate date: anchor_date - (anchor_id - current_id) * 7 days
+        // Calculate date: anchor is the current week's Tuesday start.
+        // diffWeeks = 0 means current period, 1 = one week ago, etc.
+        // Add 7 days so we show the Tuesday that STARTED the week being checked.
         if (anchor) {
           const diffWeeks = anchor.id - row.period_id;
           const weekDate = new Date(anchor.date);
-          weekDate.setDate(weekDate.getDate() - (diffWeeks * 7));
+          weekDate.setDate(weekDate.getDate() - (diffWeeks * 7) + 7);
           displayDate = weekDate.toISOString().split('T')[0];
         }
 
