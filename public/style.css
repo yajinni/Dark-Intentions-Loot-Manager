@@ -1896,3 +1896,60 @@ body {
 .animate-fade-in {
   animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
+
+/* ── Vault Tab ───────────────────────────── */
+.vault-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  padding: 10px;
+}
+
+.vault-column {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 15px;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+}
+
+.vault-column h3 {
+  font-family: var(--font-accent);
+  font-size: 14px;
+  color: var(--color-gold);
+  margin-bottom: 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.vault-names-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.vault-name {
+  font-size: 15px;
+  color: var(--color-text);
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: background 0.2s;
+}
+
+.vault-name:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.vault-empty-text {
+  color: var(--color-text-muted);
+  font-style: italic;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 10px;
+}

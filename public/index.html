@@ -54,6 +54,10 @@
         <span class="nav-icon">⏰</span>
         <span class="nav-label">On Time</span>
       </li>
+      <li class="nav-item" data-tab="vault">
+        <span class="nav-icon">🏦</span>
+        <span class="nav-label">Vault</span>
+      </li>
       <li class="nav-item admin-only hidden" data-tab="epgp">
         <span class="nav-icon">⚖️</span>
         <span class="nav-label">EPGP</span>
@@ -425,6 +429,21 @@
         <div id="attendance-container">
           <div class="empty-row text-center" style="padding: 20px;">
             No attendance data recorded yet.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Vault Tab ───────────────────────────── -->
+    <div id="tab-vault" class="tab-panel">
+      <div class="panel-header">
+        <h1>Weekly Vault Progress</h1>
+      </div>
+      <div id="vault-message" class="message hidden"></div>
+      <div class="content-scroll">
+        <div id="vault-container">
+          <div class="empty-row text-center" style="padding: 20px;">
+            Loading vault data...
           </div>
         </div>
       </div>

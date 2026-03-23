@@ -293,10 +293,11 @@ async function switchTab(name) {
       case 'users': loadUsers(); break;
       case 'attendance': loadAttendance(); break;
       case 'on-time': loadOnTime(); break;
+      case 'vault': loadVaultTab(); break;
     }
   }
   // Always force reload dynamic tabs
-  if (['logs', 'attendance', 'on-time', 'signups', 'loot'].includes(name)) {
+  if (['logs', 'attendance', 'on-time', 'signups', 'loot', 'vault'].includes(name)) {
     tabLoaded[name] = false;
     switch (name) {
       case 'logs': loadLogs(); break;
@@ -304,6 +305,7 @@ async function switchTab(name) {
       case 'on-time': loadOnTime(); break;
       case 'signups': loadSignups(); break;
       case 'loot': loadLootHistory(); break;
+      case 'vault': loadVaultTab(); break;
     }
   }
 }
@@ -2369,10 +2371,11 @@ function renderSignups(signups) {
 // ================================================================
 //  COLLAPSIBLE SECTIONS
 // ================================================================
-$$('.collapsible-header').forEach(header => {
-  header.addEventListener('click', () => {
+document.addEventListener('click', (e) => {
+  const header = e.target.closest('.collapsible-header');
+  if (header) {
     header.classList.toggle('collapsed');
-  });
+  }
 });
 
 // ================================================================
@@ -2840,3 +2843,62 @@ async function init() {
   loadRoster();
 }
 init();
+
+// ================================================================
+//  VAULT HISTORY TAB
+// ================================================================
+async function loadVaultTab() {
+  const container = $('#vault-container');
+  container.innerHTML = '<div class="empty-row text-center" style="padding: 20px;">Loading vault data...</div>';
+
+  try {
+    const res = await apiFetch('/api/vault-history');
+    const data = await res.json();
+
+    if (data.error) throw new Error(data.error);
+    renderVaultTab(data.raid_weeks || []);
+  } catch (err) {
+    showMessage('vault', 'error', `✗ Failed to load vault history: ${err.message}`);
+    container.innerHTML = `<div class="empty-row text-error text-center" style="padding: 20px;">Error: ${err.message}</div>`;
+  }
+}
+
+function renderVaultTab(weeks) {
+  const container = $('#vault-container');
+  if (weeks.length === 0) {
+    container.innerHTML = '<div class="empty-row text-center" style="padding: 20px;">No historical vault data found. Ensure the Tuesday Vault Check has run.</div>';
+    return;
+  }
+
+  container.innerHTML = weeks.map(week => {
+    const { date, groups } = week;
+    
+    const renderColumn = (title, names) => `
+      <div class="vault-column">
+        <h3>${title}</h3>
+        <div class="vault-names-list">
+          ${names.length > 0 
+            ? names.map(name => `<div class="vault-name">${escHtml(name)}</div>`).join('') 
+            : '<div class="vault-empty-text">None</div>'}
+        </div>
+      </div>
+    `;
+
+    return `
+      <div class="collapsible-section" style="margin-bottom: 20px;">
+        <button class="collapsible-header collapsed" style="background: rgba(255,255,255,0.05);">
+          <span class="collapse-icon">▼</span>
+          <h2 class="section-title">Raid Date: ${escHtml(date)}</h2>
+        </button>
+        <div class="collapsible-content">
+          <div class="vault-grid">
+            ${renderColumn('No Vault', groups.no_vault)}
+            ${renderColumn('1 Vault Slot', groups.vault_1)}
+            ${renderColumn('2 Vault Slots', groups.vault_2)}
+            ${renderColumn('3 Vault Slots', groups.vault_3)}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
