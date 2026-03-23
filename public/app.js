@@ -2187,10 +2187,11 @@ async function openGearValuesModal() {
 
   try {
     const res = await apiFetch('/api/epgp');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     
-    if (data.success) {
-      const values = data.values || [];
+    if (data.gear_values) {
+      const values = data.gear_values || [];
       if (values.length === 0) {
         tbody.innerHTML = '<tr><td colspan="2" class="text-center">No gear values configured.</td></tr>';
       } else {
@@ -2202,7 +2203,7 @@ async function openGearValuesModal() {
         `).join('');
       }
     } else {
-      tbody.innerHTML = `<tr><td colspan="2" class="text-center text-error">Error: ${escHtml(data.error)}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="2" class="text-center text-error">Error: ${escHtml(data.error || 'Invalid API response')}</td></tr>`;
     }
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="2" class="text-center text-error">Network error: ${escHtml(err.message)}</td></tr>`;
