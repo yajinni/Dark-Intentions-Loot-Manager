@@ -76,6 +76,11 @@ export async function onRequest({ request, env }) {
       const raidId = raid.id;
       let raidDate = raid.date;
 
+      // Store current raid ID in settings so the signups API can filter by it
+      await env.DB.prepare(
+        `INSERT OR REPLACE INTO settings (key, value) VALUES ('current_raid_id', ?)`
+      ).bind(String(raidId)).run();
+
       let insertedCount = 0;
       let bonusesAwarded = 0;
       const rewardedNames = [];
