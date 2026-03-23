@@ -112,8 +112,16 @@
       </div>
       <div id="roster-message" class="message hidden"></div>
       <div class="content-scroll">
-        <div class="roster-filters">
+        <div class="roster-filters" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
           <input type="text" id="roster-search" class="filter-input" placeholder="Filter roster...">
+          <div class="roster-info-tip" style="display: flex; align-items: center; gap: 10px; color: var(--color-text-dim); font-size: 14px; background: rgba(255,255,255,0.03); padding: 8px 15px; border-radius: 6px; border: 1px solid var(--color-border);">
+            <span style="font-size: 16px;">💡</span>
+            <span>
+              <strong style="color: #4caf73;">Green PR Values</strong> = High priority. 
+              <strong style="color: #e05555;">Red values</strong> is the opposite. 
+              Click on a person's row to see more Points details and history.
+            </span>
+          </div>
         </div>
         <table id="roster-table" class="data-table sortable">
           <thead>
