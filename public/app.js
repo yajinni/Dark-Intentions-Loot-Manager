@@ -2332,6 +2332,7 @@ function renderSignups(signups) {
   let html = '';
   dates.forEach((date, i) => {
     const records = grouped[date];
+    const isNextRaid = i === 0; // First date in sorted list (descending)
     
     // Determine EP value for the bubble
     const epRecord = records.find(r => r.ep_awarded > 0);
@@ -2350,9 +2351,9 @@ function renderSignups(signups) {
 
     html += `
       <div class="signup-raid-section" style="margin-bottom: 20px; border: 1px solid var(--color-border); border-radius: 8px; background: rgba(255,255,255,0.02); overflow: hidden;">
-        <div class="signup-raid-header" style="padding: 18px 20px; background: rgba(0,0,0,0.15);">
+        <div class="signup-raid-header" style="padding: 18px 20px; background: ${isNextRaid ? 'rgba(var(--color-primary-rgb), 0.15)' : 'rgba(0,0,0,0.15)'};">
           <div style="margin-bottom: 8px;">
-            <strong style="font-size: 16px; color: #fff;">Raid Date: ${formatDateWithDay(date)}</strong>
+            <strong style="font-size: 16px; color: #fff;">${isNextRaid ? 'NEXT RAID' : 'Raid Date'}: ${formatDateWithDay(date)}</strong>
           </div>
           <div style="font-size: 16px; color: var(--color-text); line-height: 1.5; font-weight: 500; display: flex; align-items: center;">
             <span class="ep-bubble" style="margin-right: 12px;">${epValue}</span>

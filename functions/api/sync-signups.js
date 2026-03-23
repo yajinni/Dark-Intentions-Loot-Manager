@@ -38,7 +38,7 @@ export async function onRequest({ request, env }) {
       }
 
       // Fetch upcoming raids from WoWAudit
-      const wowauditUrl = `https://wowaudit.com/v1/raids`;
+      const wowauditUrl = `https://wowaudit.com/v1/raids?include_past=false`;
       const raidResponse = await fetch(wowauditUrl, {
         headers: {
           'accept': 'application/json',
@@ -66,30 +66,28 @@ export async function onRequest({ request, env }) {
       if (raids.length === 0) {
         await logEvent(env, 'info', 'API', 'Synced Signups: No upcoming raids found.');
         return new Response(
-          JSON.stringify({ success: true, message: 'No raids found', inserted: 0 }),
+          JSON.stringify({ success: true, message: 'No upcoming raids found', inserted: 0 }),
           { status: 200, headers }
         );
       }
 
+      // ONLY process the first raid (the next upcoming one)
+      const raid = raids[0];
+      const raidId = raid.id;
+      let raidDate = raid.date;
+
       let insertedCount = 0;
       let bonusesAwarded = 0;
-
       const rewardedNames = [];
-      // Currently, we process the upcoming raids returned by the V1 API
-      for (const raid of raids) {
-        const raidId = raid.id;
-        let raidDate = raid.date;
-        
-        // Fetch detailed raid info to get signups (the list view doesn't include them)
-        const detailUrl = `https://wowaudit.com/v1/raids/${raidId}`;
-        const detailRes = await fetch(detailUrl, {
-          headers: { 'accept': 'application/json', 'Authorization': apiKey }
-        });
-        
-        if (!detailRes.ok) continue;
+
+      // Fetch detailed raid info to get signups
+      const detailUrl = `https://wowaudit.com/v1/raids/${raidId}`;
+      const detailRes = await fetch(detailUrl, {
+        headers: { 'accept': 'application/json', 'Authorization': apiKey }
+      });
+      
+      if (detailRes.ok) {
         const detailData = await detailRes.json();
-        
-        // WoWAudit v1 Detail API puts signups in a 'signups' property
         const signups = detailData.signups || [];
         raidDate = detailData.date || raidDate;
 
@@ -120,22 +118,13 @@ export async function onRequest({ request, env }) {
             }
             insertedCount++;
 
-            // Award EP Bonus if status is not 'Unknown', ep has not been awarded yet,
-            // AND the raid date is within the last 7 days (the "previous week's raid").
-            const raidDateObj = new Date(raidDate);
-            const now = new Date();
-            const sevenDaysAgo = new Date();
-            sevenDaysAgo.setDate(now.getDate() - 7);
-
-            const isWithinLastWeek = raidDateObj >= sevenDaysAgo && raidDateObj <= now;
-
-            if (status !== 'Unknown' && epAwarded === 0 && isWithinLastWeek) {
+            // Award EP Bonus if status is not 'Unknown', and ep has not been awarded yet.
+            if (status !== 'Unknown' && epAwarded === 0) {
               const rosterChar = await env.DB.prepare(
                 `SELECT id FROM roster WHERE name = ?`
               ).bind(character.name).first();
 
               if (rosterChar) {
-                // INSERT INTO ep_log ONLY (total is calculated from logs in Roster API)
                 const reason = `${signupReason} [${raidDate.split('T')[0]}]`;
                 
                 await env.DB.prepare(
@@ -151,7 +140,6 @@ export async function onRequest({ request, env }) {
                 rewardedNames.push(character.name);
               }
             }
-
           } catch (err) {
             console.error(`Error processing signup for ${character.name}:`, err);
           }
