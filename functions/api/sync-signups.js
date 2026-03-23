@@ -123,18 +123,13 @@ export async function onRequest({ request, env }) {
             // Award EP Bonus if status is not 'Unknown', and ep has not been awarded yet.
             if (status !== 'Unknown' && epAwarded === 0) {
               const rosterChar = await env.DB.prepare(
-                `SELECT id, ep FROM roster WHERE name = ?`
+                `SELECT id FROM roster WHERE name = ?`
               ).bind(character.name).first();
 
               if (rosterChar) {
-                // Award Configured EP
-                const newEp = (rosterChar.ep || 0) + signupEp;
+                // INSERT INTO ep_log ONLY (total is calculated from logs in Roster API)
                 const reason = `${signupReason} [${raidDate}]`;
                 
-                await env.DB.prepare(
-                  `UPDATE roster SET ep = ? WHERE id = ?`
-                ).bind(newEp, rosterChar.id).run();
-
                 await env.DB.prepare(
                   `INSERT INTO ep_log (name, ep, reason, timestamp) VALUES (?, ?, ?, datetime('now'))`
                 ).bind(character.name, signupEp, reason).run();

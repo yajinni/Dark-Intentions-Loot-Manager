@@ -114,18 +114,13 @@ export async function onRequest({ request, env }) {
           ? `${filledSlots} max slots filled` 
           : "No level 10 Keys Ran";
 
-        // Award EP if character is in roster
+        // Check if character is in roster
         const rosterChar = await env.DB.prepare(
-          "SELECT id, ep FROM roster WHERE name = ?"
+          "SELECT id FROM roster WHERE name = ?"
         ).bind(char.name).first();
 
         if (rosterChar) {
-          const newEp = (rosterChar.ep || 0) + epToAward;
-          
-          // Update Roster EP
-          await env.DB.prepare(
-            "UPDATE roster SET ep = ? WHERE id = ?"
-          ).bind(newEp, rosterChar.id).run();
+          // INSERT INTO ep_log ONLY (total is calculated from logs in Roster API)
 
           // Log transaction
           await env.DB.prepare(

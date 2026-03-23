@@ -19,6 +19,20 @@ export async function ensureTablesExist(env) {
     const hasGPValue = tableInfo.results && tableInfo.results.some(c => c.name === 'gp_value');
     const hasCharName = tableInfo.results && tableInfo.results.some(c => c.name === 'character_name');
     
+    // Roster migrations
+    const rosterInfo = await env.DB.prepare("PRAGMA table_info(roster)").all();
+    const hasRosterEP = rosterInfo.results && rosterInfo.results.some(c => c.name === 'ep');
+    const hasRosterGP = rosterInfo.results && rosterInfo.results.some(c => c.name === 'gp');
+    
+    if (!hasRosterEP) {
+      console.log('Migrating roster: adding ep column...');
+      await env.DB.prepare("ALTER TABLE roster ADD COLUMN ep INTEGER DEFAULT 0").run();
+    }
+    if (!hasRosterGP) {
+      console.log('Migrating roster: adding gp column...');
+      await env.DB.prepare("ALTER TABLE roster ADD COLUMN gp INTEGER DEFAULT 0").run();
+    }
+    
     // Only drop if it's very old. For missing columns, we'll ALTER.
     if (hasName || hasOldAwardedCol || hasAwardedByName) {
       console.log('Detected old loot_history schema, dropping for recreation...');
@@ -117,6 +131,8 @@ async function initializeDatabase(env) {
       rank         INTEGER,
       rank_name    TEXT,
       ilvl         REAL,
+      ep           INTEGER DEFAULT 0,
+      gp           INTEGER DEFAULT 0,
       status       TEXT DEFAULT 'active',
       last_updated TEXT DEFAULT (datetime('now'))
     );
