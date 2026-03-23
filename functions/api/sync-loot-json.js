@@ -216,12 +216,14 @@ export async function onRequest({ request, env }) {
             gpAmount = 0;
           }
 
-          if (isNew && charInfo && gpAmount > 0) {
+          const isMogOrOffspec = respLower === 'mog' || respLower === 'off spec' || respLower === 'offspec';
+          if (isNew && charInfo && (gpAmount > 0 || isMogOrOffspec)) {
+            const logReason = `Awarded https://www.wowhead.com/item=${itemId} (Loot History)${gpAmount === 0 ? ` [${response}]` : ''}`;
             gpStatements.push(
               env.DB.prepare(`
                 INSERT INTO gp_log (name, gp, reason, timestamp)
                 VALUES (?, ?, ?, ?)
-              `).bind(charInfo.name, gpAmount, `Awarded https://www.wowhead.com/item=${itemId} (Loot History)`, now)
+              `).bind(charInfo.name, gpAmount, logReason, now)
             );
             gpAwardedCount++;
           }
