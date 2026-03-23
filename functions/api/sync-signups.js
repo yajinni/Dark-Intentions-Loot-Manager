@@ -89,8 +89,8 @@ export async function onRequest({ request, env }) {
         if (!detailRes.ok) continue;
         const detailData = await detailRes.json();
         
-        // WoWAudit v1 Detail API strangely puts signups in a 'raids' property
-        const signups = detailData.raids || [];
+        // WoWAudit v1 Detail API puts signups in a 'signups' property
+        const signups = detailData.signups || [];
         raidDate = detailData.date || raidDate;
 
         for (const signup of signups) {
