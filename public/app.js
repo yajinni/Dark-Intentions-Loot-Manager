@@ -2182,7 +2182,7 @@ async function openGearValuesModal() {
   const modal = $('#gear-values-modal');
   const grid = $('#gear-values-grid');
   
-  grid.innerHTML = '<div class="text-center" style="grid-column: span 2;">Loading gear values...</div>';
+  grid.innerHTML = '<div class="text-center" style="grid-column: span 3; font-size: 15px;">Loading gear values...</div>';
   modal.classList.remove('hidden');
 
   try {
@@ -2193,20 +2193,20 @@ async function openGearValuesModal() {
     if (data.gear_values) {
       const values = data.gear_values || [];
       if (values.length === 0) {
-        grid.innerHTML = '<div class="text-center" style="grid-column: span 2;">No gear values configured.</div>';
+        grid.innerHTML = '<div class="text-center" style="grid-column: span 3; font-size: 15px;">No gear values configured.</div>';
       } else {
         grid.innerHTML = values.map(v => `
-          <div class="gear-value-item" style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center;">
+          <div class="gear-value-item" style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; font-size: 15px;">
             <span style="text-transform: capitalize; font-weight: 500;">${escHtml(v.slot_name)}</span>
             <span style="font-weight: 700; color: var(--color-gold);">+${v.point_value} GP</span>
           </div>
         `).join('');
       }
     } else {
-      grid.innerHTML = `<div class="text-center text-error" style="grid-column: span 2;">Error: ${escHtml(data.error || 'Invalid API response')}</div>`;
+      grid.innerHTML = `<div class="text-center text-error" style="grid-column: span 3; font-size: 15px;">Error: ${escHtml(data.error || 'Invalid API response')}</div>`;
     }
   } catch (err) {
-    grid.innerHTML = `<div class="text-center text-error" style="grid-column: span 2;">Network error: ${escHtml(err.message)}</div>`;
+    grid.innerHTML = `<div class="text-center text-error" style="grid-column: span 3; font-size: 15px;">Network error: ${escHtml(err.message)}</div>`;
   }
 }
 

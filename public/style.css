@@ -1472,7 +1472,8 @@ body {
 }
 
 #transaction-history-modal .modal-content,
-#log-details-modal .modal-content {
+#log-details-modal .modal-content,
+#gear-values-modal .modal-content {
   max-width: 1000px;
 }
 
