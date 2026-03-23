@@ -211,14 +211,20 @@ export async function onRequest({ request, env }) {
           let gpAmount = gearMap.get(slotKey) || 0;
 
           // User requirement: mog or off spec should give 0 GP
+          // Minor Upgrade should be half GP
           const respLower = (response || '').toLowerCase();
+          let responseTag = '';
+
           if (respLower === 'mog' || respLower === 'off spec' || respLower === 'offspec') {
             gpAmount = 0;
+            responseTag = ` [${response}]`;
+          } else if (respLower === 'minor upgrade' || respLower === 'minorupgrade') {
+            gpAmount = Math.floor(gpAmount / 2);
+            responseTag = ` [${response}]`;
           }
 
-          const isMogOrOffspec = respLower === 'mog' || respLower === 'off spec' || respLower === 'offspec';
-          if (isNew && charInfo && (gpAmount > 0 || isMogOrOffspec)) {
-            const logReason = `Awarded https://www.wowhead.com/item=${itemId} (Loot History)${gpAmount === 0 ? ` [${response}]` : ''}`;
+          if (isNew && charInfo && (gpAmount > 0 || respLower === 'mog' || respLower === 'off spec' || respLower === 'offspec')) {
+            const logReason = `Awarded https://www.wowhead.com/item=${itemId} (Loot History)${responseTag}`;
             gpStatements.push(
               env.DB.prepare(`
                 INSERT INTO gp_log (name, gp, reason, timestamp)
