@@ -354,6 +354,15 @@ async function loadRoster() {
   }
 }
 
+function getPrColor(pr, min, max) {
+  if (pr === '—') return 'inherit';
+  const numPr = parseFloat(pr);
+  if (min >= max) return 'hsl(120, 80%, 45%)'; // Default to green if all are equal
+  const ratio = Math.max(0, Math.min(1, (numPr - min) / (max - min)));
+  const hue = ratio * 120; // 0 is Red, 120 is Green
+  return `hsl(${hue}, 80%, 45%)`;
+}
+
 function renderRoster(roster) {
   const tbody = $('#roster-tbody');
   if (roster.length === 0) {
@@ -361,17 +370,32 @@ function renderRoster(roster) {
     return;
   }
 
+  // Calculate min and max PR for color gradient
+  let minPr = Infinity;
+  let maxPr = -Infinity;
+  roster.forEach(c => {
+    const ep = c.ep ?? 0;
+    const gp = c.gp ?? 0;
+    if (gp > 0) {
+      const prVal = ep / gp;
+      if (prVal < minPr) minPr = prVal;
+      if (prVal > maxPr) maxPr = prVal;
+    }
+  });
+  if (minPr === Infinity) { minPr = 0; maxPr = 1; } // Fallback
+
   tbody.innerHTML = roster.map(c => {
     const css    = classCss(c.class);
     const status = (c.status || 'active').toLowerCase();
     const ep = c.ep ?? 0;
     const gp = c.gp ?? 0;
     const pr = gp > 0 ? (ep / gp).toFixed(2) : '—';
+    const prColor = getPrColor(pr, minPr, maxPr);
     const charId = `roster-char-${escHtml(c.name)}`;
 
     return `
       <tr class="roster-row" data-character="${escHtml(c.name)}">
-        <td class="pr-cell"><span class="expand-arrow">▸</span> ${pr}</td>
+        <td class="pr-cell" style="color: ${prColor}; font-weight: bold;"><span class="expand-arrow" style="color: var(--color-text); font-weight: normal;">▸</span> ${pr}</td>
         <td><span class="char-name ${css}">${escHtml(c.name)}</span></td>
         <td>${escHtml(c.realm || '—')}</td>
         <td class="${css}">${escHtml(c.class || '—')}</td>
