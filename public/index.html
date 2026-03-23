@@ -800,17 +800,9 @@
         <button id="close-gear-values-btn" class="btn-close">✕</button>
       </div>
       <div class="modal-body">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Gear Slot</th>
-              <th>GP Value</th>
-            </tr>
-          </thead>
-          <tbody id="gear-values-tbody">
-            <!-- Populated by JS -->
-          </tbody>
-        </table>
+        <div id="gear-values-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+          <!-- Populated by JS -->
+        </div>
       </div>
     </div>
   </div>
