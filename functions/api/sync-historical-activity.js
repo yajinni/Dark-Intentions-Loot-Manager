@@ -54,6 +54,11 @@ export async function onRequest({ request, env }) {
         throw new Error('Could not find current period ID from WoWAudit.');
       }
 
+      // Update wowaudit_period table for anchor use in other APIs
+      await env.DB.prepare(
+        'INSERT OR REPLACE INTO wowaudit_period (period_id, data) VALUES (?, ?)'
+      ).bind(currentPeriodId, JSON.stringify(periodData)).run();
+
       // Check if today is the start_date
       const today = new Date();
       const todayStr = today.toISOString().split('T')[0];

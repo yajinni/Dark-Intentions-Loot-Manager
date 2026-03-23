@@ -44,6 +44,11 @@ export async function onRequest({ request, env }) {
         .prepare("SELECT period_id, data FROM historical_activity ORDER BY period_id DESC")
         .all();
 
+      // 4. Get class mapping from roster for color coding
+      const rosterRows = await env.DB.prepare("SELECT name, class FROM roster").all();
+      const nameToClass = {};
+      (rosterRows.results || []).forEach(r => nameToClass[r.name] = r.class);
+
       const raidWeeks = results.map(row => {
         const data = JSON.parse(row.data);
         const characters = data.characters || [];
@@ -55,7 +60,6 @@ export async function onRequest({ request, env }) {
           const diffWeeks = anchor.id - row.period_id;
           const weekDate = new Date(anchor.date);
           weekDate.setDate(weekDate.getDate() - (diffWeeks * 7));
-          // If we are looking at the period that just ended, the "previous Tuesday" is the start of THAT period.
           displayDate = weekDate.toISOString().split('T')[0];
         }
 
@@ -74,7 +78,10 @@ export async function onRequest({ request, env }) {
           if (dungeons.option_2 >= minVaultLevel) slotsFilled++;
           if (dungeons.option_3 >= minVaultLevel) slotsFilled++;
 
-          const charObj = { name: char.name, class: char.class || 'Unknown' };
+          const charObj = { 
+            name: char.name, 
+            class: nameToClass[char.name] || char.class || 'Unknown' 
+          };
 
           if (slotsFilled === 0) groups.no_vault.push(charObj);
           else if (slotsFilled === 1) groups.vault_1.push(charObj);
