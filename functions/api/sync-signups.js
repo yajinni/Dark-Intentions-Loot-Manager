@@ -78,11 +78,25 @@ export async function onRequest({ request, env }) {
       // Currently, we process the upcoming raids returned by the V1 API
       for (const raid of raids) {
         const raidId = raid.id;
-        const raidDate = raid.date;
-        const signups = raid.signups || [];
+        let raidDate = raid.date;
+        
+        // Fetch detailed raid info to get signups (the list view doesn't include them)
+        const detailUrl = `https://wowaudit.com/v1/raids/${raidId}`;
+        const detailRes = await fetch(detailUrl, {
+          headers: { 'accept': 'application/json', 'Authorization': apiKey }
+        });
+        
+        if (!detailRes.ok) continue;
+        const detailData = await detailRes.json();
+        
+        // WoWAudit v1 Detail API strangely puts signups in a 'raids' property
+        const signups = detailData.raids || [];
+        raidDate = detailData.date || raidDate;
 
         for (const signup of signups) {
           const character = signup.character;
+          if (!character || !character.name) continue;
+          
           const status = signup.status || 'Unknown';
 
           // Insert or get existing signup
