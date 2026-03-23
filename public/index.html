@@ -149,6 +149,9 @@
         <h1>Raid History</h1>
         <div class="panel-header-actions">
           <span id="loot-last-updated" class="last-updated-text"></span>
+          <button id="show-gear-values-btn" class="btn btn-secondary">
+            <span class="btn-icon">🔍</span> Show Gear GP Values
+          </button>
           <button id="sync-loot-btn" class="btn btn-primary">
             <span class="btn-icon">📁</span> Upload Loot File
           </button>
@@ -785,6 +788,29 @@
       <div class="modal-footer">
         <button id="create-user-submit-btn" class="btn btn-primary">Create Account</button>
         <button id="cancel-user-modal-btn" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gear GP Values Modal -->
+  <div id="gear-values-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Gear Slot GP Values</h2>
+        <button id="close-gear-values-btn" class="btn-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Gear Slot</th>
+              <th>GP Value</th>
+            </tr>
+          </thead>
+          <tbody id="gear-values-tbody">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

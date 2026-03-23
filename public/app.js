@@ -2175,6 +2175,47 @@ function renderBossesView(items) {
   `;
 }
 
+/**
+ * Fetch and show Gear GP values in a modal
+ */
+async function openGearValuesModal() {
+  const modal = $('#gear-values-modal');
+  const tbody = $('#gear-values-tbody');
+  
+  tbody.innerHTML = '<tr><td colspan="2" class="text-center">Loading gear values...</td></tr>';
+  modal.classList.remove('hidden');
+
+  try {
+    const res = await apiFetch('/api/epgp');
+    const data = await res.json();
+    
+    if (data.success) {
+      const values = data.values || [];
+      if (values.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="2" class="text-center">No gear values configured.</td></tr>';
+      } else {
+        tbody.innerHTML = values.map(v => `
+          <tr>
+            <td style="text-transform: capitalize;">${escHtml(v.slot_name)}</td>
+            <td style="font-weight: bold; color: var(--color-gold);">+${v.point_value} GP</td>
+          </tr>
+        `).join('');
+      }
+    } else {
+      tbody.innerHTML = `<tr><td colspan="2" class="text-center text-error">Error: ${escHtml(data.error)}</td></tr>`;
+    }
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="2" class="text-center text-error">Network error: ${escHtml(err.message)}</td></tr>`;
+  }
+}
+
+// Gear values modal listeners
+$('#show-gear-values-btn').addEventListener('click', openGearValuesModal);
+$('#close-gear-values-btn').addEventListener('click', () => $('#gear-values-modal').classList.add('hidden'));
+$('#gear-values-modal').addEventListener('click', (e) => {
+  if (e.target === $('#gear-values-modal')) $('#gear-values-modal').classList.add('hidden');
+});
+
 
 // Helper for class colors in loot (we need to find the character in roster)
 function getRosterMemberClass(charName) {
