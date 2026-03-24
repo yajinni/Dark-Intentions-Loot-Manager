@@ -420,9 +420,9 @@ function renderRoster(roster) {
                 <span class="detail-label">Gear Points (GP):</span>
                 <span class="detail-value">${gp}</span>
               </div>
-              <div class="detail-item" style="background: transparent; border: none; padding: 0; justify-content: flex-end; gap: 10px;">
-                <button class="btn btn-secondary view-history-btn" data-character="${escHtml(c.name)}" style="padding: 11px 23px; font-size: 14px;">📜 View EP/GP History</button>
-                <button class="btn btn-secondary view-loot-btn" data-character="${escHtml(c.name)}" data-id="${c.character_id}" style="padding: 11px 23px; font-size: 14px;">💎 View Loot History</button>
+              <div class="detail-item" style="background: transparent; border: none; padding: 0; justify-content: flex-end; gap: 8px;">
+                <button class="btn btn-secondary view-history-btn" data-character="${escHtml(c.name)}" style="padding: 9px 16px; font-size: 13px;">📜 EP/GP History</button>
+                <button class="btn btn-secondary view-loot-btn" data-character="${escHtml(c.name)}" data-id="${c.character_id}" style="padding: 9px 16px; font-size: 13px;">💎 Loot History</button>
               </div>
             </div>
           </div>

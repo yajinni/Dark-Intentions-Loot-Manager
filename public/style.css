@@ -839,15 +839,15 @@ body {
 
 .detail-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
 }
 
 .detail-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
+  padding: 8px 12px;
   background: rgba(0, 0, 0, 0.2);
   border-left: 3px solid var(--accent-purple);
   border-radius: 8px;
@@ -863,12 +863,13 @@ body {
   font-weight: 500;
   color: var(--color-text-dim);
   font-family: var(--font-accent);
+  font-size: 13px;
 }
 
 .detail-value {
   color: #fff;
   font-family: var(--font-accent);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
 }
 
