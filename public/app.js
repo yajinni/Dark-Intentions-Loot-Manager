@@ -420,8 +420,9 @@ function renderRoster(roster) {
                 <span class="detail-label">Gear Points (GP):</span>
                 <span class="detail-value">${gp}</span>
               </div>
-              <div class="detail-item">
-                <button class="btn btn-secondary view-history-btn" data-character="${escHtml(c.name)}" style="padding: 11px 23px; font-size: 14px; margin-left: auto;">📜 View EP/GP History</button>
+              <div class="detail-item" style="background: transparent; border: none; padding: 0; justify-content: flex-end; gap: 10px;">
+                <button class="btn btn-secondary view-history-btn" data-character="${escHtml(c.name)}" style="padding: 11px 23px; font-size: 14px;">📜 View EP/GP History</button>
+                <button class="btn btn-secondary view-loot-btn" data-character="${escHtml(c.name)}" data-id="${c.character_id}" style="padding: 11px 23px; font-size: 14px;">💎 View Loot History</button>
               </div>
             </div>
           </div>
@@ -447,6 +448,16 @@ function renderRoster(roster) {
       e.stopPropagation();
       const characterName = btn.dataset.character;
       await openTransactionHistoryModal(characterName);
+    });
+  });
+
+  // Add click handlers for View Loot buttons
+  $$('.view-loot-btn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const characterName = btn.dataset.character;
+      const characterId = btn.dataset.id;
+      await openPlayerLootModal(characterName, characterId);
     });
   });
 }
@@ -533,6 +544,70 @@ async function openTransactionHistoryModal(characterName) {
   const transactions = await loadTransactionHistory(characterName);
   await populateHistoryModal(transactions, characterName);
   modal.classList.remove('hidden');
+}
+
+async function openPlayerLootModal(characterName, characterId) {
+  const modal = $('#player-loot-modal');
+  const listEl = $('#player-loot-list');
+  const titleEl = $('#player-loot-title');
+
+  titleEl.textContent = `Loot History — ${escHtml(characterName)}`;
+  listEl.innerHTML = '<div class="text-center" style="padding: 20px;">Loading loot history...</div>';
+  modal.classList.remove('hidden');
+
+  try {
+    const res = await apiFetch(`/api/loot-history?character_id=${characterId}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const lootItems = data.history_items || [];
+    renderPlayerLootItems(lootItems, characterName);
+  } catch (err) {
+    console.error('Error loading player loot:', err);
+    listEl.innerHTML = `<div class="text-center" style="padding: 20px; color: var(--color-danger);">Error: ${err.message}</div>`;
+  }
+}
+
+function renderPlayerLootItems(items, characterName) {
+  const listEl = $('#player-loot-list');
+  
+  if (items.length === 0) {
+    listEl.innerHTML = '<div class="transaction-list-empty">No loot history for this character</div>';
+    return;
+  }
+
+  listEl.innerHTML = items.map(item => {
+    const formattedDate = new Date(item.awarded_at).toLocaleDateString();
+    const qualityClass = getQualityClass(item.item_id); // Assuming we have this, or fallback
+    
+    return `
+      <div class="transaction-item">
+        <div class="transaction-content">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
+            <a href="https://www.wowhead.com/item=${item.item_id}" class="wowhead-link loot-item-link" target="_blank" data-wh-icon-size="small">
+              ${escHtml(item.name || `Item #${item.item_id}`)}
+            </a>
+            <div style="display: flex; align-items: center; gap: 8px;">
+               ${(item.gp_value !== null && item.gp_value !== undefined) ? `<span class="loot-gp-badge" style="background: rgba(var(--color-primary-rgb), 0.15); color: var(--color-primary); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">+${item.gp_value} GP</span>` : ''}
+               <span class="loot-slot-tag" style="background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; font-size: 11px; color: var(--color-text-dim);">${escHtml(item.slot || item.typeCode || '')}</span>
+            </div>
+          </div>
+          <div style="font-size: 12px; color: var(--color-text-dim); margin-top: 4px;">
+            ${escHtml(item.boss || 'Unknown Boss')} — ${escHtml(item.instance || 'Unknown Instance')} (${escHtml(item.difficulty || 'Heroic')})
+          </div>
+          <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">
+            Awarded on ${formattedDate} ${item.response ? `• Response: <span style="font-style: italic;">${escHtml(item.response)}</span>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Refresh Tooltips
+  if (window.$WowheadPower) {
+    window.$WowheadPower.refreshLinks();
+  } else if (typeof refreshWowheadTooltips === 'function') {
+    refreshWowheadTooltips();
+  }
 }
 
 async function formatReasonWithLinks(reason) {
@@ -1935,6 +2010,26 @@ transactionHistoryModal.addEventListener('click', (e) => {
     transactionHistoryModal.classList.add('hidden');
   }
 });
+
+// ================================================================
+//  PLAYER LOOT MODAL
+// ================================================================
+const playerLootModal = $('#player-loot-modal');
+const closePlayerLootBtn = $('#close-player-loot-btn');
+
+if (closePlayerLootBtn) {
+  closePlayerLootBtn.addEventListener('click', () => {
+    playerLootModal.classList.add('hidden');
+  });
+}
+
+if (playerLootModal) {
+  playerLootModal.addEventListener('click', (e) => {
+    if (e.target === playerLootModal) {
+      playerLootModal.classList.add('hidden');
+    }
+  });
+}
 
 closeEditTransactionBtn.addEventListener('click', () => {
   editTransactionModal.classList.add('hidden');
