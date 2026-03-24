@@ -1472,9 +1472,10 @@ body {
 }
 
 #transaction-history-modal .modal-content,
+#player-loot-modal .modal-content,
 #log-details-modal .modal-content,
 #gear-values-modal .modal-content {
-  max-width: 1000px;
+  max-width: 1200px;
 }
 
 .modal-header {
