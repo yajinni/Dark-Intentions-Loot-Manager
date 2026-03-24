@@ -409,7 +409,7 @@ function renderRoster(roster) {
           <div class="detail-content">
             <div class="detail-grid">
               <div class="detail-item">
-                <span class="detail-label">Priority Ratio:</span>
+                <span class="detail-label">Priority Ratio(PR):</span>
                 <span class="detail-value">${pr}</span>
               </div>
               <div class="detail-item">
