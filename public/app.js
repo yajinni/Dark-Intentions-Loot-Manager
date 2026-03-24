@@ -576,25 +576,28 @@ function renderPlayerLootItems(items, characterName) {
   }
 
   listEl.innerHTML = items.map(item => {
-    const formattedDate = new Date(item.awarded_at).toLocaleDateString();
+    // Match toLocaleString() used in Transaction History for consistency
+    const formattedDate = new Date(item.awarded_at).toLocaleString();
     
     return `
       <div class="transaction-item">
         <div class="transaction-content">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
-            <a href="https://www.wowhead.com/item=${item.item_id}" class="wowhead-link loot-item-link" target="_blank" data-wh-icon-size="small">
-              ${escHtml(item.name || `Item #${item.item_id}`)}
-            </a>
-            <div style="display: flex; align-items: center; gap: 8px;">
-               ${(item.gp_value !== null && item.gp_value !== undefined) ? `<span class="loot-gp-badge" style="background: rgba(var(--color-primary-rgb), 0.15); color: var(--color-primary); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">+${item.gp_value} GP</span>` : ''}
-               <span class="loot-slot-tag" style="background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; font-size: 11px; color: var(--color-text-dim);">${escHtml(item.slot || item.typeCode || '')}</span>
+          <span class="transaction-type-badge loot">LOOT</span>
+          <div class="transaction-details">
+            <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
+              <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+                <a href="https://www.wowhead.com/item=${item.item_id}" class="wowhead-link loot-item-link" target="_blank" data-wh-icon-size="small" style="font-size: 17px; font-family: 'Courier New', monospace; color: var(--color-text);">
+                  ${escHtml(item.name || `Item #${item.item_id}`)}
+                </a>
+                <span class="loot-slot-tag" style="background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; font-size: 11px; color: var(--color-text-dim);">${escHtml(item.slot || item.typeCode || '')}</span>
+                ${(item.gp_value !== null && item.gp_value !== undefined) ? `<span class="loot-gp-badge" style="background: rgba(var(--color-primary-rgb), 0.15); color: var(--color-primary); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">+${item.gp_value} GP</span>` : ''}
+              </div>
+              <div style="font-size: 13px; color: var(--color-text-dim); margin-top: 2px; font-family: 'Courier New', monospace;">
+                ${escHtml(item.boss || 'Unknown Boss')} — ${escHtml(item.instance || 'Unknown Instance')} (${escHtml(item.difficulty || 'Heroic')})
+                ${item.response ? ` • <span style="font-style: italic;">${escHtml(item.response)}</span>` : ''}
+              </div>
             </div>
-          </div>
-          <div style="font-size: 12px; color: var(--color-text-dim); margin-top: 4px;">
-            ${escHtml(item.boss || 'Unknown Boss')} — ${escHtml(item.instance || 'Unknown Instance')} (${escHtml(item.difficulty || 'Heroic')})
-          </div>
-          <div style="font-size: 11px; color: var(--color-text-muted); margin-top: 2px;">
-            Awarded on ${formattedDate} ${item.response ? `• Response: <span style="font-style: italic;">${escHtml(item.response)}</span>` : ''}
+            <span class="transaction-timestamp">${formattedDate}</span>
           </div>
         </div>
       </div>
