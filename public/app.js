@@ -583,6 +583,7 @@ function renderPlayerLootItems(items, characterName) {
     return `
       <div class="transaction-item">
         <div class="transaction-content" style="padding-left: 10px;">
+          <span class="transaction-type-badge gp">GP</span>
           <div class="transaction-details">
             <span class="transaction-amount">+${gpValue}</span>
               <div style="display: flex; align-items: baseline; gap: 8px; flex: 1; min-width: 0;">
