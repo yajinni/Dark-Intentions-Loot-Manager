@@ -2374,9 +2374,21 @@ function renderSignups(signups, currentRaidId) {
 //  COLLAPSIBLE SECTIONS
 // ================================================================
 document.addEventListener('click', (e) => {
+  // Main collapsible sections
   const header = e.target.closest('.collapsible-header');
   if (header) {
     header.classList.toggle('collapsed');
+    return;
+  }
+
+  // Vault category collapsible sections
+  const vHeader = e.target.closest('.vault-category-header');
+  if (vHeader) {
+    vHeader.classList.toggle('collapsed');
+    const content = vHeader.nextElementSibling;
+    if (content) {
+      content.classList.toggle('hidden');
+    }
   }
 });
 
@@ -2875,32 +2887,47 @@ function renderVaultTab(weeks) {
   container.innerHTML = weeks.map(week => {
     const { date, groups } = week;
     
-    const renderColumn = (title, characters) => `
-      <div class="vault-column">
-        <h3>${title}</h3>
-        <div class="vault-names-list">
-          ${characters.length > 0 
-            ? characters.map(c => {
-                const color = typeof getClassColor === 'function' ? getClassColor(c.class) : '#fff';
-                return `<div class="vault-name" style="color: ${color}">${escHtml(c.name)}</div>`;
-              }).join('') 
-            : '<div class="vault-empty-text">None</div>'}
+    // Define the categories with display names
+    const categories = [
+      { key: 'no_vault', title: 'No Vault' },
+      { key: 'vault_1', title: '1 Vault Slot' },
+      { key: 'vault_2', title: '2 Vault Slots' },
+      { key: 'vault_3', title: '3 Vault Slots' }
+    ];
+
+    const renderCategory = (cat) => {
+      const characters = groups[cat.key] || [];
+      const hasChars = characters.length > 0;
+      
+      return `
+        <div class="vault-category-section ${hasChars ? '' : 'empty'}">
+          <button class="vault-category-header collapsed">
+            <span class="collapse-icon">▼</span>
+            <span class="vault-category-title">${cat.title} (${characters.length})</span>
+          </button>
+          <div class="vault-category-content hidden">
+            <div class="vault-names-list horizontal">
+              ${hasChars 
+                ? characters.map(c => {
+                    const color = typeof getClassColor === 'function' ? getClassColor(c.class) : '#fff';
+                    return `<div class="vault-name-pill" style="border-color: ${color}; color: ${color}">${escHtml(c.name)}</div>`;
+                  }).join('') 
+                : '<div class="vault-empty-text">No characters in this category.</div>'}
+            </div>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    };
 
     return `
-      <div class="collapsible-section" style="margin-bottom: 20px;">
+      <div class="collapsible-section vault-week-section" style="margin-bottom: 20px;">
         <button class="collapsible-header collapsed" style="background: rgba(255,255,255,0.05);">
           <span class="collapse-icon">▼</span>
           <h2 class="section-title">Raid Date: ${escHtml(date)}</h2>
         </button>
         <div class="collapsible-content">
-          <div class="vault-grid">
-            ${renderColumn('No Vault', groups.no_vault)}
-            ${renderColumn('1 Vault Slot', groups.vault_1)}
-            ${renderColumn('2 Vault Slots', groups.vault_2)}
-            ${renderColumn('3 Vault Slots', groups.vault_3)}
+          <div class="vault-categories-container">
+            ${categories.map(cat => renderCategory(cat)).join('')}
           </div>
         </div>
       </div>

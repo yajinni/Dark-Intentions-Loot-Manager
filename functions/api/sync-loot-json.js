@@ -219,7 +219,7 @@ export async function onRequest({ request, env }) {
             gpAmount = 0;
             responseTag = ` [${response}]`;
           } else if (respLower === 'minor upgrade' || respLower === 'minorupgrade') {
-            gpAmount = Math.floor(gpAmount / 2);
+            gpAmount = Math.floor(gpAmount * 0.25);
             responseTag = ` [${response}]`;
           }
 
