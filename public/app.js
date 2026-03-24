@@ -578,24 +578,20 @@ function renderPlayerLootItems(items, characterName) {
   listEl.innerHTML = items.map(item => {
     // Match toLocaleString() used in Transaction History for consistency
     const formattedDate = new Date(item.awarded_at).toLocaleString();
+    const gpValue = item.gp_value || 0;
     
     return `
       <div class="transaction-item">
-        <div class="transaction-content">
-          <span class="transaction-type-badge loot">LOOT</span>
+        <div class="transaction-content" style="padding-left: 10px;">
           <div class="transaction-details">
-            <div style="flex: 1; display: flex; flex-direction: column; min-width: 0;">
-              <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
-                <a href="https://www.wowhead.com/item=${item.item_id}" class="wowhead-link loot-item-link" target="_blank" data-wh-icon-size="small" style="font-size: 17px; font-family: 'Courier New', monospace; color: var(--color-text);">
-                  ${escHtml(item.name || `Item #${item.item_id}`)}
-                </a>
-                <span class="loot-slot-tag" style="background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; font-size: 11px; color: var(--color-text-dim);">${escHtml(item.slot || item.typeCode || '')}</span>
-                ${(item.gp_value !== null && item.gp_value !== undefined) ? `<span class="loot-gp-badge" style="background: rgba(var(--color-primary-rgb), 0.15); color: var(--color-primary); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">+${item.gp_value} GP</span>` : ''}
-              </div>
-              <div style="font-size: 13px; color: var(--color-text-dim); margin-top: 2px; font-family: 'Courier New', monospace;">
-                ${escHtml(item.boss || 'Unknown Boss')} — ${escHtml(item.instance || 'Unknown Instance')} (${escHtml(item.difficulty || 'Heroic')})
-                ${item.response ? ` • <span style="font-style: italic;">${escHtml(item.response)}</span>` : ''}
-              </div>
+            <span class="transaction-amount">+${gpValue}</span>
+            <div class="transaction-reason" style="display: flex; align-items: baseline; gap: 8px; flex: 1; min-width: 0;">
+              <a href="https://www.wowhead.com/item=${item.item_id}" class="wowhead-link loot-item-link" target="_blank" data-wh-icon-size="small" style="color: var(--color-text); font-size: 17px; font-family: 'Courier New', monospace;">
+                [${escHtml(item.name || `Item #${item.item_id}`)}]
+              </a>
+              <span style="color: var(--color-text-dim); font-size: 14px; font-family: 'Courier New', monospace;">
+                (${escHtml(item.boss || 'Unknown Boss')}${item.response ? ` • ${escHtml(item.response)}` : ''})
+              </span>
             </div>
             <span class="transaction-timestamp">${formattedDate}</span>
           </div>

@@ -1723,12 +1723,6 @@ body {
   border: 1px solid rgba(100, 200, 255, 0.4);
 }
 
-.transaction-type-badge.loot {
-  background: rgba(200, 168, 75, 0.2);
-  color: var(--color-gold);
-  border: 1px solid var(--color-gold-border);
-}
-
 .transaction-details {
   flex: 1;
   display: flex;
