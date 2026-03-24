@@ -830,7 +830,7 @@ async function loadEpgp() {
         $('#signup-ep-input').value = data.vault_settings.signup_ep || '1';
       }
       if ($('#signup-reason-input')) {
-        $('#signup-reason-input').value = data.vault_settings.signup_reason || 'On Time';
+        $('#signup-reason-input').value = data.vault_settings.signup_reason || 'Early Sign Up';
       }
       
       // Populate On Time EP
@@ -852,7 +852,7 @@ async function loadEpgp() {
         reasonList.innerHTML = '';
         const reasons = [
           data.vault_settings.signup_reason || 'Early Sign Up',
-          data.vault_settings.on_time_reason || 'On Time'
+          data.vault_settings.on_time_reason || 'On Time for Raid'
         ];
         reasons.forEach(r => {
           const option = document.createElement('option');
@@ -864,7 +864,7 @@ async function loadEpgp() {
       // Store special reasons for later comparison
       window.specialReasons = {
         signup: data.vault_settings.signup_reason || 'Early Sign Up',
-        ontime: data.vault_settings.on_time_reason || 'On Time'
+        ontime: data.vault_settings.on_time_reason || 'On Time for Raid'
       };
     }
 

@@ -215,7 +215,7 @@ async function initializeDatabase(env) {
       ('signup_ep', '1'),
       ('signup_reason', 'Early Sign Up'),
       ('on_time_ep', '1'),
-      ('on_time_reason', 'On Time'),
+      ('on_time_reason', 'On Time for Raid'),
       ('last_pr_sync', null);
 
     -- Migrations: Align Gear Slots with User's new naming convention
