@@ -585,14 +585,14 @@ function renderPlayerLootItems(items, characterName) {
         <div class="transaction-content" style="padding-left: 10px;">
           <div class="transaction-details">
             <span class="transaction-amount">+${gpValue}</span>
-            <div class="transaction-reason" style="display: flex; align-items: baseline; gap: 8px; flex: 1; min-width: 0;">
-              <a href="https://www.wowhead.com/item=${item.item_id}" class="wowhead-link loot-item-link" target="_blank" data-wh-icon-size="small" style="color: var(--color-text); font-size: 17px; font-family: 'Courier New', monospace;">
-                [${escHtml(item.name || `Item #${item.item_id}`)}]
-              </a>
-              <span style="color: var(--color-text-dim); font-size: 14px; font-family: 'Courier New', monospace;">
-                (${escHtml(item.boss || 'Unknown Boss')}${item.response ? ` • ${escHtml(item.response)}` : ''})
-              </span>
-            </div>
+              <div style="display: flex; align-items: baseline; gap: 8px; flex: 1; min-width: 0;">
+                <a href="https://www.wowhead.com/item=${item.item_id}" class="wowhead-link loot-item-link" target="_blank" data-wh-icon-size="small" style="color: var(--color-text); font-size: 17px; font-family: 'Courier New', monospace;">
+                  [${escHtml(item.name || `Item #${item.item_id}`)}]
+                </a>
+                <span style="color: var(--color-text); font-size: 17px; font-family: 'Courier New', monospace;">
+                  (${escHtml(item.boss || 'Unknown Boss')}${item.response ? ` • ${escHtml(item.response)}` : ''})
+                </span>
+              </div>
             <span class="transaction-timestamp">${formattedDate}</span>
           </div>
         </div>
