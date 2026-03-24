@@ -577,7 +577,6 @@ function renderPlayerLootItems(items, characterName) {
 
   listEl.innerHTML = items.map(item => {
     const formattedDate = new Date(item.awarded_at).toLocaleDateString();
-    const qualityClass = getQualityClass(item.item_id); // Assuming we have this, or fallback
     
     return `
       <div class="transaction-item">
