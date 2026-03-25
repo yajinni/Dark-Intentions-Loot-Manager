@@ -32,9 +32,30 @@ export async function onRequest({ request, env }) {
       return new Response(JSON.stringify({ error: 'Source (orphan) and target (roster) names are required' }), { status: 400, headers });
     }
 
-    // Start a transaction-like sequence (Cloudflare D1 batch)
-    // We ONLY update logs because 'oldName' is an orphan and 'newName' already exists in the roster.
+    // 1. Fetch and update historical_activity JSON data (Vault history)
+    const { results: activityRows } = await env.DB.prepare("SELECT period_id, data FROM historical_activity").all();
+    const historyStatements = [];
     
+    for (const row of activityRows || []) {
+      const data = JSON.parse(row.data);
+      let changed = false;
+      if (data.characters && Array.isArray(data.characters)) {
+        for (const char of data.characters) {
+          if (char.name === oldName) {
+            char.name = newName;
+            changed = true;
+          }
+        }
+      }
+      if (changed) {
+        historyStatements.push(
+          env.DB.prepare("UPDATE historical_activity SET data = ? WHERE period_id = ?")
+            .bind(JSON.stringify(data), row.period_id)
+        );
+      }
+    }
+
+    // 2. Standard table updates
     const statements = [
       // Update EP logs
       env.DB.prepare("UPDATE ep_log SET name = ? WHERE name = ?")
@@ -54,18 +75,27 @@ export async function onRequest({ request, env }) {
 
       // Update Loot History
       env.DB.prepare("UPDATE loot_history SET character_name = ? WHERE character_name = ?")
-        .bind(newName, oldName)
+        .bind(newName, oldName),
+
+      // NEW: Cleanup old roster entry if it exists as an orphan
+      env.DB.prepare("DELETE FROM roster WHERE name = ?")
+        .bind(oldName),
+
+      // Add all JSON updates to the batch
+      ...historyStatements
     ];
 
-    const results = await env.DB.batch(statements);
+    const batchResults = await env.DB.batch(statements);
 
-    const epChanges      = results[0]?.meta?.changes ?? 0;
-    const gpChanges      = results[1]?.meta?.changes ?? 0;
-    const signupChanges  = results[2]?.meta?.changes ?? 0;
-    const attendChanges  = results[3]?.meta?.changes ?? 0;
-    const lootChanges    = results[4]?.meta?.changes ?? 0;
+    const epChanges      = batchResults[0]?.meta?.changes ?? 0;
+    const gpChanges      = batchResults[1]?.meta?.changes ?? 0;
+    const signupChanges  = batchResults[2]?.meta?.changes ?? 0;
+    const attendChanges  = batchResults[3]?.meta?.changes ?? 0;
+    const lootChanges    = batchResults[4]?.meta?.changes ?? 0;
+    const rosterDeleted  = batchResults[5]?.meta?.changes ?? 0;
+    const historyUpdated = historyStatements.length;
 
-    await logEvent(env, 'info', 'Admin', `Merged "${oldName}" into "${newName}" (${epChanges} EP, ${gpChanges} GP, ${signupChanges} signups, ${attendChanges} attendance, ${lootChanges} loot).`);
+    await logEvent(env, 'info', 'Admin', `Merged "${oldName}" into "${newName}" (${epChanges} EP, ${gpChanges} GP, ${signupChanges} signups, ${attendChanges} attendance, ${lootChanges} loot, ${historyUpdated} vault weeks, ${rosterDeleted} roster cleanup).`);
 
     return new Response(JSON.stringify({ 
       success: true, 
