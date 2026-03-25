@@ -153,8 +153,11 @@
         <h1>Raid History</h1>
         <div class="panel-header-actions">
           <span id="loot-last-updated" class="last-updated-text"></span>
-          <button id="show-gear-values-btn" class="btn btn-secondary">
-            <span class="btn-icon">🔍</span> Show Gear GP Values
+          <button id="show-gear-values-btn" class="btn btn-secondary" style="display: flex; flex-direction: column; align-items: center; padding: 6px 16px; gap: 0;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+               <span class="btn-icon">🔍</span> Show Gear GP Values
+            </div>
+            <div style="font-size: 10px; opacity: 0.7; font-weight: normal; margin-top: -2px;">(Mog/OffSpec: 0, Minor Upgrade: 25%)</div>
           </button>
           <button id="sync-loot-btn" class="btn btn-primary">
             <span class="btn-icon">📁</span> Upload Loot File
@@ -836,6 +839,13 @@
       <div class="modal-body">
         <div id="gear-values-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
           <!-- Populated by JS -->
+        </div>
+        <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed var(--color-border); font-family: var(--font-accent); font-size: 14px; color: var(--color-text-dim);">
+          <div style="font-weight: bold; color: var(--color-gold); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">Special Loot Rules:</div>
+          <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px;">
+            <li>✨ <span style="color: var(--color-text);">Off Spec / Mog:</span> 0 GP</li>
+            <li>📉 <span style="color: var(--color-text);">Minor Upgrade:</span> 75% Discount (Costs 25% of slot value)</li>
+          </ul>
         </div>
       </div>
     </div>
