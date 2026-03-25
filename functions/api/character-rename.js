@@ -55,7 +55,11 @@ export async function onRequest({ request, env }) {
       }
     }
 
-    // 2. Standard table updates
+    // 2. Check for duplicate "Initial GP on roster sync" entries
+    const oldInitial = await env.DB.prepare("SELECT id FROM gp_log WHERE name = ? AND reason = 'Initial GP on roster sync'").bind(oldName).first();
+    const newInitial = await env.DB.prepare("SELECT id FROM gp_log WHERE name = ? AND reason = 'Initial GP on roster sync'").bind(newName).first();
+
+    // 3. Standard table updates
     const statements = [
       // Update EP logs
       env.DB.prepare("UPDATE ep_log SET name = ? WHERE name = ?")
@@ -81,6 +85,9 @@ export async function onRequest({ request, env }) {
       env.DB.prepare("DELETE FROM roster WHERE name = ?")
         .bind(oldName),
 
+      // Deduplicate Initial GP: If both had initial GP, delete the 'new' one from the target character
+      ...(oldInitial && newInitial ? [env.DB.prepare("DELETE FROM gp_log WHERE id = ?").bind(newInitial.id)] : []),
+
       // Add all JSON updates to the batch
       ...historyStatements
     ];
@@ -93,9 +100,10 @@ export async function onRequest({ request, env }) {
     const attendChanges  = batchResults[3]?.meta?.changes ?? 0;
     const lootChanges    = batchResults[4]?.meta?.changes ?? 0;
     const rosterDeleted  = batchResults[5]?.meta?.changes ?? 0;
+    const gpDeduplicated = (oldInitial && newInitial) ? (batchResults[6]?.meta?.changes ?? 0) : 0;
     const historyUpdated = historyStatements.length;
 
-    await logEvent(env, 'info', 'Admin', `Merged "${oldName}" into "${newName}" (${epChanges} EP, ${gpChanges} GP, ${signupChanges} signups, ${attendChanges} attendance, ${lootChanges} loot, ${historyUpdated} vault weeks, ${rosterDeleted} roster cleanup).`);
+    await logEvent(env, 'info', 'Admin', `Merged "${oldName}" into "${newName}" (${epChanges} EP, ${gpChanges} GP, ${signupChanges} signups, ${attendChanges} attendance, ${lootChanges} loot, ${historyUpdated} vault weeks, ${rosterDeleted} roster cleanup, ${gpDeduplicated} Initial GP deduplicated).`);
 
     return new Response(JSON.stringify({ 
       success: true, 
