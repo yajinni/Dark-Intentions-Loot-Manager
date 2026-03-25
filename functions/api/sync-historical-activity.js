@@ -169,6 +169,11 @@ export async function onRequest({ request, env }) {
         total_ep: totalEpAwarded
       });
 
+      // Update last_pr_sync to trigger DI Monitor if any points were awarded
+      if (totalEpAwarded > 0) {
+        await env.DB.prepare("UPDATE settings SET value = ? WHERE key = 'last_pr_sync'").bind(new Date().toISOString()).run();
+      }
+
       return new Response(JSON.stringify({
         success: true,
         message: summary,

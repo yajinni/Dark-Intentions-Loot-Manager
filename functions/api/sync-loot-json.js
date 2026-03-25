@@ -291,6 +291,11 @@ export async function onRequest({ request, env }) {
       INSERT OR REPLACE INTO settings (key, value, updated_at)
       VALUES ('last_loot_sync', ?, datetime('now'))
     `).bind(now));
+    
+    // Update last_pr_sync to trigger DI Monitor
+    allStatements.push(env.DB.prepare(`
+      UPDATE settings SET value = ? WHERE key = 'last_pr_sync'
+    `).bind(now));
 
     await env.DB.batch(allStatements);
 

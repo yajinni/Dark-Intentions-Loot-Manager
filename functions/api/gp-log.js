@@ -34,6 +34,12 @@ export async function onRequest({ request, env }) {
         );
       }
 
+      // Update last_pr_sync to trigger DI Monitor
+      statements.push(
+        env.DB.prepare("UPDATE settings SET value = ? WHERE key = 'last_pr_sync'")
+          .bind(new Date().toISOString())
+      );
+
       await env.DB.batch(statements);
 
       const logMsg = targetNames.length > 1

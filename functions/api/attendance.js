@@ -97,6 +97,12 @@ export async function onRequest({ request, env }) {
       const presentNamesList = payload.map(p => p.name);
 
       if (statements.length > 0) {
+        // Update last_pr_sync to trigger DI Monitor
+        statements.push(
+          env.DB.prepare("UPDATE settings SET value = ? WHERE key = 'last_pr_sync'")
+            .bind(new Date().toISOString())
+        );
+
         await env.DB.batch(statements);
         const logMsg = `Awarded ${onTimeEp} EP to ${presentNamesList.length} characters (Reason: ${onTimeReason} ${onlyDate})`;
         await logEvent(env, 'info', 'On Time', logMsg, { names: presentNamesList, snapshot: snapshotTimestamp });
