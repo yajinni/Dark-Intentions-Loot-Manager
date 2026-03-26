@@ -177,6 +177,8 @@ export async function onRequest({ request, env }) {
                 itemSlot = 'TOKEN';
               } else if (tooltipLower.includes('decor')) {
                 itemSlot = 'DECOR';
+              } else if (data.slot === "Token") {
+                itemSlot = 'TOKEN';
               } else {
                 itemSlot = data.slot;
               }
@@ -292,18 +294,17 @@ export async function onRequest({ request, env }) {
       VALUES ('last_loot_sync', ?, datetime('now'))
     `).bind(now));
     
-    // Update last_pr_sync to trigger DI Monitor
-    allStatements.push(env.DB.prepare(`
-      UPDATE settings SET value = ? WHERE key = 'last_pr_sync'
-    `).bind(now));
+    // Update last_pr_sync and reason to trigger DI Monitor
+    allStatements.push(env.DB.prepare("UPDATE settings SET value = ? WHERE key = 'last_pr_sync'").bind(now));
+    allStatements.push(env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('last_pr_sync_reason', 'Loot Sync')"));
 
     await env.DB.batch(allStatements);
 
-    await logEvent(env, 'success', 'Loot', `Processed ${insertedCount + updatedCount} loot items (${insertedCount} new, ${updatedCount} updated, ${gpAwardedCount} GP)`, { insertedCount, updatedCount, gpAwardedCount, errors });
+    await logEvent(env, 'success', 'Loot', `Processed ${insertedCount + updatedCount} loot items (${insertedCount} new, ${updatedCount} verified, ${gpAwardedCount} GP)`, { insertedCount, updatedCount, gpAwardedCount, errors });
 
     return new Response(JSON.stringify({
       success: true,
-      message: `✓ Success: ${insertedCount} new items, ${updatedCount} records updated, ${gpAwardedCount} items awarded GP.`,
+      message: `✓ Success: ${insertedCount} new items, ${updatedCount} records verified, ${gpAwardedCount} items awarded GP.`,
       inserted: insertedCount,
       updated: updatedCount,
       gpAwarded: gpAwardedCount,

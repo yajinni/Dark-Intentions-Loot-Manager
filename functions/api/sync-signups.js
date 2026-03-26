@@ -174,9 +174,13 @@ export async function onRequest({ request, env }) {
       const logMsg = `Awarded ${signupEp} EP to ${bonusesAwarded} characters (Reason: ${signupReason})`;
       await logEvent(env, 'success', 'Roster', logMsg, { names: rewardedNames, inserted: insertedCount, bonuses: bonusesAwarded });
       
-      // Update last_pr_sync to trigger DI Monitor if any points were awarded
+      // Update last_pr_sync and reason to trigger DI Monitor if any points were awarded
       if (bonusesAwarded > 0) {
-        await env.DB.prepare("UPDATE settings SET value = ? WHERE key = 'last_pr_sync'").bind(new Date().toISOString()).run();
+        const now = new Date().toISOString();
+        await env.DB.batch([
+          env.DB.prepare("UPDATE settings SET value = ? WHERE key = 'last_pr_sync'").bind(now),
+          env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('last_pr_sync_reason', 'Signup Bonus')")
+        ]);
       }
 
       return new Response(

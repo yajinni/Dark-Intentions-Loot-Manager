@@ -19,10 +19,11 @@ export async function onRequest({ request, env }) {
   try {
     const now = new Date().toISOString();
     
-    // Update the last_pr_sync setting
-    await env.DB.prepare("UPDATE settings SET value = ? WHERE key = 'last_pr_sync'")
-      .bind(now)
-      .run();
+    // Update the last_pr_sync and reason
+    await env.DB.batch([
+      env.DB.prepare("UPDATE settings SET value = ? WHERE key = 'last_pr_sync'").bind(now),
+      env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('last_pr_sync_reason', 'Manual Sync')")
+    ]);
 
     return new Response(
       JSON.stringify({ success: true, last_pr_sync: now }),

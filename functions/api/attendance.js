@@ -88,11 +88,9 @@ export async function onRequest({ request, env }) {
       }
 
       if (statements.length > 0) {
-        // Update last_pr_sync to trigger DI Monitor
-        statements.push(
-          env.DB.prepare("UPDATE settings SET value = ? WHERE key = 'last_pr_sync'")
-            .bind(new Date().toISOString())
-        );
+        // Update last_pr_sync and reason to trigger DI Monitor
+        statements.push(env.DB.prepare("UPDATE settings SET value = ? WHERE key = 'last_pr_sync'").bind(new Date().toISOString()));
+        statements.push(env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('last_pr_sync_reason', 'Attendance Sync')"));
 
         await env.DB.batch(statements);
         const logMsg = `Awarded ${onTimeEp} EP to ${presentNamesList.length} characters (Reason: ${onTimeReason} ${onlyDate})`;

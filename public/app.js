@@ -2981,12 +2981,21 @@ function renderVaultTab(weeks) {
   container.innerHTML = weeks.map(week => {
     const { date, groups } = week;
     
-    // Define the categories with display names
+    // Calculate date 1 week in advance
+    const snapshotDate = new Date(date.includes(' ') ? date : date + 'T12:00:00');
+    snapshotDate.setDate(snapshotDate.getDate() + 7);
+    const yyyy = snapshotDate.getFullYear();
+    const mm = String(snapshotDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(snapshotDate.getDate()).padStart(2, '0');
+    const weekAheadDate = `${yyyy}-${mm}-${dd}`;
+    const displayDate = typeof formatDateWithDay === 'function' ? formatDateWithDay(weekAheadDate) : weekAheadDate;
+
+    // Define the categories with new display names
     const categories = [
-      { key: 'no_vault', title: 'No Vault' },
-      { key: 'vault_1', title: '1 Vault Slot' },
-      { key: 'vault_2', title: '2 Vault Slots' },
-      { key: 'vault_3', title: '3 Vault Slots' }
+      { key: 'no_vault', title: 'No Level 10 Keys or Better Ran' },
+      { key: 'vault_1', title: 'Atleast One Level 10 or Better Ran' },
+      { key: 'vault_2', title: 'Atleast Four Level 10 Keys or Better Ran' },
+      { key: 'vault_3', title: 'Atleast Eight Level 10 Keys or Better Ran' }
     ];
 
     const renderCategory = (cat) => {
@@ -3014,15 +3023,14 @@ function renderVaultTab(weeks) {
     };
 
     return `
-      <div class="collapsible-section vault-week-section" style="margin-bottom: 20px;">
-        <button class="collapsible-header collapsed" style="background: rgba(255,255,255,0.05);">
-          <span class="collapse-icon">▼</span>
-          <h2 class="section-title">Raid Date: ${escHtml(date)}</h2>
-        </button>
-        <div class="collapsible-content">
-          <div class="vault-categories-container">
-            ${categories.map(cat => renderCategory(cat)).join('')}
+      <div class="on-time-raid-section" style="margin-bottom: 20px; border: 1px solid var(--color-border); border-radius: 8px; background: rgba(255,255,255,0.02); overflow: hidden;">
+        <div class="on-time-raid-header" style="padding: 18px 20px; background: rgba(0,0,0,0.15);">
+          <div style="margin-bottom: 0;">
+            <strong style="font-size: 16px; color: #fff;">Vault Options on this Day: ${displayDate}</strong>
           </div>
+        </div>
+        <div class="vault-categories-container" style="padding: 0 10px 10px;">
+          ${categories.map(cat => renderCategory(cat)).join('')}
         </div>
       </div>
     `;
