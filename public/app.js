@@ -2993,7 +2993,7 @@ function renderVaultTab(weeks) {
     // Define the categories with status labels
     const categories = [
       { key: 'no_vault', title: 'No Level 10 Keys or Better Ran', status: 'BAD!' },
-      { key: 'vault_1', title: 'At Least One Level 10 or Better Ran', status: 'Minimum' },
+      { key: 'vault_1', title: 'At Least One Level 10 Key or Better Ran', status: 'Minimum' },
       { key: 'vault_2', title: 'At Least Four Level 10 Keys or Better Ran', status: 'Expected' },
       { key: 'vault_3', title: 'At Least Eight Level 10 Keys or Better Ran', status: 'Awesome!' }
     ];
@@ -3002,7 +3002,7 @@ function renderVaultTab(weeks) {
       const characters = groups[cat.key] || [];
       const hasChars = characters.length > 0;
       
-      const statusColor = cat.status === 'BAD!' ? '#b91c1c' : (cat.status === 'Awesome!' ? '#4caf50' : 'var(--color-text-dim)');
+      const statusColor = '#b91c1c';
 
       return `
         <div class="vault-category-section ${hasChars ? '' : 'empty'}">
