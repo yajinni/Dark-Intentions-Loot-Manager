@@ -3002,7 +3002,7 @@ function renderVaultTab(weeks) {
       const characters = groups[cat.key] || [];
       const hasChars = characters.length > 0;
       
-      const statusColor = cat.status === 'BAD!' ? '#ff4d4d' : (cat.status === 'Awesome!' ? '#4caf50' : 'var(--color-text-dim)');
+      const statusColor = cat.status === 'BAD!' ? '#b91c1c' : (cat.status === 'Awesome!' ? '#4caf50' : 'var(--color-text-dim)');
 
       return `
         <div class="vault-category-section ${hasChars ? '' : 'empty'}">
