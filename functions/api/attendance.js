@@ -36,18 +36,6 @@ export async function onRequest({ request, env }) {
       const snapshotTimestamp = payload.length > 0 ? payload[0].date : new Date().toISOString();
       const onlyDate = snapshotTimestamp.split(' ')[0]; // Assumes "YYYY-MM-DD HH:MM:SS"
 
-      // 1. Filter Snapshot re-upload (exactly the same file)
-      const existingSnapshot = await env.DB.prepare("SELECT id FROM attendance WHERE snapshot_timestamp = ? LIMIT 1")
-        .bind(snapshotTimestamp)
-        .first();
-
-      if (existingSnapshot) {
-        return new Response(JSON.stringify({ 
-          success: true, 
-          message: 'This exact snapshot has already been processed.' 
-        }), { status: 200, headers });
-      }
-
       // Fetch settings FIRST to avoid ReferenceError
       const { results: settingsRows } = await env.DB
         .prepare("SELECT key, value FROM settings WHERE key IN ('on_time_ep', 'on_time_reason')")
@@ -58,13 +46,16 @@ export async function onRequest({ request, env }) {
       const onTimeReason = settings.on_time_reason || 'On Time Bonus';
 
       const statements = [];
-      const presentNames = new Set(payload.map(p => p.name));
+      const presentNames = new Set(payload.map(p => p.name.toLowerCase()));
       const presentNamesList = payload.map(p => p.name);
 
       for (const char of roster) {
-        const fullName = `${char.name}-${char.realm}`;
+        const normalizedRealm = char.realm.replace(/\s+/g, '');
+        const fullName = `${char.name}-${normalizedRealm}`.toLowerCase();
+        const justName = char.name.toLowerCase();
+        
         // WoW API omits realm if same server; check both
-        const isPresent = presentNames.has(fullName) || presentNames.has(char.name);
+        const isPresent = presentNames.has(fullName) || presentNames.has(justName);
         const attended = isPresent ? 1 : 0;
         
         // 2. Check if this character already has an entry for this calendar day
