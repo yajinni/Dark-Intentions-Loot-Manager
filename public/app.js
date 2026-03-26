@@ -3002,7 +3002,7 @@ function renderVaultTab(weeks) {
       const characters = groups[cat.key] || [];
       const hasChars = characters.length > 0;
       
-      const statusColor = '#b91c1c';
+      const statusColor = cat.status === 'BAD!' ? '#b91c1c' : (cat.status === 'Awesome!' ? '#4caf50' : 'var(--color-text-dim)');
       const borderStyle = cat.borderColor ? `border-left: 4px solid ${cat.borderColor};` : '';
 
       return `
