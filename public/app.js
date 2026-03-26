@@ -2990,12 +2990,12 @@ function renderVaultTab(weeks) {
     const weekAheadDate = `${yyyy}-${mm}-${dd}`;
     const displayDate = typeof formatDateWithDay === 'function' ? formatDateWithDay(weekAheadDate) : weekAheadDate;
 
-    // Define the categories with status labels
+    // Define the categories with status labels and optional borders
     const categories = [
-      { key: 'no_vault', title: 'No Level 10 Keys or Better Ran', status: 'BAD!' },
+      { key: 'no_vault', title: 'No Level 10 Keys or Better Ran', status: 'BAD!', borderColor: '#b91c1c' },
       { key: 'vault_1', title: 'At Least One Level 10 Key or Better Ran', status: 'Minimum' },
       { key: 'vault_2', title: 'At Least Four Level 10 Keys or Better Ran', status: 'Expected' },
-      { key: 'vault_3', title: 'At Least Eight Level 10 Keys or Better Ran', status: 'Awesome!' }
+      { key: 'vault_3', title: 'At Least Eight Level 10 Keys or Better Ran', status: 'Awesome!', borderColor: '#4caf50' }
     ];
 
     const renderCategory = (cat) => {
@@ -3003,9 +3003,10 @@ function renderVaultTab(weeks) {
       const hasChars = characters.length > 0;
       
       const statusColor = '#b91c1c';
+      const borderStyle = cat.borderColor ? `border-left: 4px solid ${cat.borderColor};` : '';
 
       return `
-        <div class="vault-category-section ${hasChars ? '' : 'empty'}">
+        <div class="vault-category-section ${hasChars ? '' : 'empty'}" style="${borderStyle}">
           <button class="vault-category-header collapsed" style="justify-content: space-between;">
             <div style="display: flex; align-items: center; gap: 10px;">
               <span class="collapse-icon">▼</span>
