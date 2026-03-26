@@ -48,12 +48,23 @@ export async function onRequest({ request, env }) {
         }), { status: 200, headers });
       }
 
+      // Fetch settings FIRST to avoid ReferenceError
+      const { results: settingsRows } = await env.DB
+        .prepare("SELECT key, value FROM settings WHERE key IN ('on_time_ep', 'on_time_reason')")
+        .all();
+      const settings = {};
+      settingsRows.forEach(row => settings[row.key] = row.value);
+      const onTimeEp = parseInt(settings.on_time_ep, 10) || 1;
+      const onTimeReason = settings.on_time_reason || 'On Time Bonus';
+
       const statements = [];
       const presentNames = new Set(payload.map(p => p.name));
+      const presentNamesList = payload.map(p => p.name);
 
       for (const char of roster) {
         const fullName = `${char.name}-${char.realm}`;
-        const isPresent = presentNames.has(fullName);
+        // WoW API omits realm if same server; check both
+        const isPresent = presentNames.has(fullName) || presentNames.has(char.name);
         const attended = isPresent ? 1 : 0;
         
         // 2. Check if this character already has an entry for this calendar day
@@ -75,26 +86,15 @@ export async function onRequest({ request, env }) {
         );
 
         // Award Configured EP for being present (only once per day)
-        if (isPresent) {
+        if (isPresent && onTimeEp > 0) {
           statements.push(
             env.DB.prepare(`
               INSERT INTO ep_log (name, ep, reason, timestamp)
               VALUES (?, ?, ?, ?)
-            `).bind(char.name, onTimeEp, `${onTimeReason} ${onlyDate}`, onlyDate)
+            `).bind(char.name, onTimeEp, `${onTimeReason} (${onlyDate})`, snapshotTimestamp) // Using snapshotTimestamp for granularity
           );
         }
       }
-
-      // Fetch settings
-      const { results: settingsRows } = await env.DB
-        .prepare("SELECT key, value FROM settings WHERE key IN ('on_time_ep', 'on_time_reason')")
-        .all();
-      const settings = {};
-      settingsRows.forEach(row => settings[row.key] = row.value);
-      const onTimeEp = parseInt(settings.on_time_ep, 10) || 1;
-      const onTimeReason = settings.on_time_reason || 'Early Sign Up';
-
-      const presentNamesList = payload.map(p => p.name);
 
       if (statements.length > 0) {
         // Update last_pr_sync to trigger DI Monitor
