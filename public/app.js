@@ -2993,9 +2993,9 @@ function renderVaultTab(weeks) {
     // Define the categories with new display names
     const categories = [
       { key: 'no_vault', title: 'No Level 10 Keys or Better Ran' },
-      { key: 'vault_1', title: 'Atleast One Level 10 or Better Ran' },
-      { key: 'vault_2', title: 'Atleast Four Level 10 Keys or Better Ran' },
-      { key: 'vault_3', title: 'Atleast Eight Level 10 Keys or Better Ran' }
+      { key: 'vault_1', title: 'At Least One Level 10 or Better Ran' },
+      { key: 'vault_2', title: 'At Least Four Level 10 Keys or Better Ran' },
+      { key: 'vault_3', title: 'At Least Eight Level 10 Keys or Better Ran' }
     ];
 
     const renderCategory = (cat) => {
