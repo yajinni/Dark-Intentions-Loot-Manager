@@ -2990,23 +2990,28 @@ function renderVaultTab(weeks) {
     const weekAheadDate = `${yyyy}-${mm}-${dd}`;
     const displayDate = typeof formatDateWithDay === 'function' ? formatDateWithDay(weekAheadDate) : weekAheadDate;
 
-    // Define the categories with new display names
+    // Define the categories with status labels
     const categories = [
-      { key: 'no_vault', title: 'No Level 10 Keys or Better Ran' },
-      { key: 'vault_1', title: 'At Least One Level 10 or Better Ran' },
-      { key: 'vault_2', title: 'At Least Four Level 10 Keys or Better Ran' },
-      { key: 'vault_3', title: 'At Least Eight Level 10 Keys or Better Ran' }
+      { key: 'no_vault', title: 'No Level 10 Keys or Better Ran', status: 'BAD!' },
+      { key: 'vault_1', title: 'At Least One Level 10 or Better Ran', status: 'Minimum' },
+      { key: 'vault_2', title: 'At Least Four Level 10 Keys or Better Ran', status: 'Expected' },
+      { key: 'vault_3', title: 'At Least Eight Level 10 Keys or Better Ran', status: 'Awesome!' }
     ];
 
     const renderCategory = (cat) => {
       const characters = groups[cat.key] || [];
       const hasChars = characters.length > 0;
       
+      const statusColor = cat.status === 'BAD!' ? '#ff4d4d' : (cat.status === 'Awesome!' ? '#4caf50' : 'var(--color-text-dim)');
+
       return `
         <div class="vault-category-section ${hasChars ? '' : 'empty'}">
-          <button class="vault-category-header collapsed">
-            <span class="collapse-icon">▼</span>
-            <span class="vault-category-title">${cat.title} (${characters.length})</span>
+          <button class="vault-category-header collapsed" style="justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="collapse-icon">▼</span>
+              <span class="vault-category-title">${cat.title} (${characters.length})</span>
+            </div>
+            <span class="vault-category-status" style="font-weight: 700; color: ${statusColor}; margin-left: auto; padding-right: 5px;">${cat.status}</span>
           </button>
           <div class="vault-category-content hidden">
             <div class="vault-names-list horizontal">
