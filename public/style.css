@@ -1920,7 +1920,7 @@ body {
 }
 
 .vault-category-section.empty {
-  opacity: 0.6;
+  opacity: 1;
 }
 
 .vault-category-header {
