@@ -1,4 +1,4 @@
-name: Scheduled Signups Sync
+name: Monday Sign Up Check
 
 on:
   schedule:
