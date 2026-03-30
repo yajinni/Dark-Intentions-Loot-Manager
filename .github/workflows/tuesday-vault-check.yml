@@ -2,7 +2,7 @@ name: Tuesday Vault Check
 
 on:
   schedule:
-    - cron: '0 22 * * 2' # Every Tuesday at 6:00 PM EST (22:00 UTC)
+    - cron: '30 15 * * 2' # Every Tuesday at 11:30 AM EDT (15:30 UTC)
   workflow_dispatch: # Allows manual trigger from the Actions tab
 
 jobs:
