@@ -31,10 +31,11 @@ export async function onRequest({ request, env }) {
       let anchor = null;
       if (periodRow) {
         const pData = JSON.parse(periodRow.data);
-        if (pData.current_season) {
+        if (pData.current_period) {
           anchor = {
-            id: pData.current_season.id,
-            date: new Date(pData.current_season.start_date)
+            id: pData.current_period,
+            date: new Date(pData.current_season.start_date),
+            first_period_id: pData.current_season.first_period_id || pData.current_period
           };
         }
       }
@@ -59,9 +60,18 @@ export async function onRequest({ request, env }) {
         // diffWeeks = 0 means current period, 1 = one week ago, etc.
         // Add 7 days so we show the Tuesday that STARTED the week being checked.
         if (anchor) {
+          // Calculation:
+          // 1. Find how many weeks the current period is from the season start.
+          // 2. Add those weeks to the season start date to get "Today's Tuesday".
+          // 3. Subtract weeks between the anchor and the row's period to find that week's Tuesday.
+          const currentTuesday = new Date(anchor.date);
+          const weeksFromStart = anchor.id - anchor.first_period_id;
+          currentTuesday.setDate(currentTuesday.getDate() + (weeksFromStart * 7));
+          
           const diffWeeks = anchor.id - row.period_id;
-          const weekDate = new Date(anchor.date);
-          weekDate.setDate(weekDate.getDate() - (diffWeeks * 7) + 7);
+          const weekDate = new Date(currentTuesday);
+          weekDate.setDate(weekDate.getDate() - (diffWeeks * 7));
+          
           displayDate = weekDate.toISOString().split('T')[0];
         }
 
