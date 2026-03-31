@@ -47,7 +47,7 @@ export async function onRequest({ request, env }) {
       }
 
       const periodData = await pRes.json();
-      const currentPeriodId = periodData.period?.current_period;
+      const currentPeriodId = periodData.current_period;
       const startDateStr = periodData.current_season?.start_date; // Expected "YYYY-MM-DD"
 
       if (!currentPeriodId) {
