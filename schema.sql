@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS roster (
 CREATE TABLE IF NOT EXISTS epgp_gear_values (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   slot_name   TEXT NOT NULL UNIQUE,
-  point_value INTEGER NOT NULL DEFAULT 0,
+  point_value REAL NOT NULL DEFAULT 0,
   updated_at  TEXT DEFAULT (datetime('now'))
 );
 
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS epgp_gear_values (
 CREATE TABLE IF NOT EXISTS ep_log (
   id        INTEGER PRIMARY KEY AUTOINCREMENT,
   name      TEXT DEFAULT '',
-  ep        INTEGER DEFAULT 0,
+  ep        REAL DEFAULT 0,
   reason    TEXT DEFAULT '',
   timestamp TEXT DEFAULT ''
 );
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS ep_log (
 CREATE TABLE IF NOT EXISTS gp_log (
   id        INTEGER PRIMARY KEY AUTOINCREMENT,
   name      TEXT DEFAULT '',
-  gp        INTEGER DEFAULT 0,
+  gp        REAL DEFAULT 0,
   reason    TEXT DEFAULT '',
   timestamp TEXT DEFAULT ''
 );
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS custom_ep_buttons (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   name        TEXT NOT NULL UNIQUE,
   description TEXT DEFAULT '',
-  ep          INTEGER NOT NULL DEFAULT 0,
+  ep          REAL NOT NULL DEFAULT 0,
   created_at  TEXT DEFAULT (datetime('now'))
 );
 
@@ -127,6 +127,7 @@ CREATE TABLE IF NOT EXISTS loot_history (
   typeCode                TEXT,
   response                TEXT,
   note                    TEXT,
+  gp_value                REAL DEFAULT 0,
   updated_at              TEXT DEFAULT (datetime('now'))
 );
 

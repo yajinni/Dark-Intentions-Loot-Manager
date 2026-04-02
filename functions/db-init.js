@@ -26,11 +26,11 @@ export async function ensureTablesExist(env) {
     
     if (!hasRosterEP) {
       console.log('Migrating roster: adding ep column...');
-      await env.DB.prepare("ALTER TABLE roster ADD COLUMN ep INTEGER DEFAULT 0").run();
+      await env.DB.prepare("ALTER TABLE roster ADD COLUMN ep REAL DEFAULT 0").run();
     }
     if (!hasRosterGP) {
       console.log('Migrating roster: adding gp column...');
-      await env.DB.prepare("ALTER TABLE roster ADD COLUMN gp INTEGER DEFAULT 0").run();
+      await env.DB.prepare("ALTER TABLE roster ADD COLUMN gp REAL DEFAULT 0").run();
     }
     
     // Only drop if it's very old. For missing columns, we'll ALTER.
@@ -49,7 +49,7 @@ export async function ensureTablesExist(env) {
       }
       if (!hasGPValue) {
         console.log('Migrating loot_history: adding gp_value column...');
-        await env.DB.prepare("ALTER TABLE loot_history ADD COLUMN gp_value INTEGER DEFAULT 0").run();
+        await env.DB.prepare("ALTER TABLE loot_history ADD COLUMN gp_value REAL DEFAULT 0").run();
       }
       if (!hasCharName) {
         console.log('Migrating loot_history: adding character_name column...');

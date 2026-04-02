@@ -414,11 +414,11 @@ function renderRoster(roster) {
               </div>
               <div class="detail-item">
                 <span class="detail-label">Earned Points (EP):</span>
-                <span class="detail-value">${ep}</span>
+                <span class="detail-value">${ep.toFixed(1)}</span>
               </div>
               <div class="detail-item">
                 <span class="detail-label">Gear Points (GP):</span>
-                <span class="detail-value">${gp}</span>
+                <span class="detail-value">${gp.toFixed(1)}</span>
               </div>
               <div class="detail-item" style="background: transparent; border: none; padding: 0; justify-content: flex-end; gap: 8px;">
                 <button class="btn btn-secondary view-history-btn" data-character="${escHtml(c.name)}" style="padding: 9px 16px; font-size: 13px;">📜 EP/GP History</button>
@@ -585,7 +585,7 @@ function renderPlayerLootItems(items, characterName) {
         <div class="transaction-content" style="padding-left: 10px;">
           <span class="transaction-type-badge gp">GP</span>
           <div class="transaction-details">
-            <span class="transaction-amount">+${gpValue}</span>
+            <span class="transaction-amount">+${gpValue.toFixed(1)}</span>
               <div style="display: flex; align-items: baseline; gap: 8px; flex: 1; min-width: 0;">
                 <a href="https://www.wowhead.com/item=${item.item_id}" class="wowhead-link loot-item-link" target="_blank" data-wh-icon-size="small" style="color: var(--color-text); font-size: 17px; font-family: 'Courier New', monospace;">
                   [${escHtml(item.name || `Item #${item.item_id}`)}]
@@ -723,7 +723,7 @@ async function populateHistoryModal(transactions, characterName) {
         <div class="transaction-content">
           <span class="transaction-type-badge ${badgeClass}">${badge}</span>
           <div class="transaction-details">
-            <span class="transaction-amount">${amount > 0 ? '+' : ''}${amount}</span>
+            <span class="transaction-amount">${amount > 0 ? '+' : ''}${amount.toFixed(1)}</span>
             <span class="transaction-reason">${reasonHTML}</span>
             <span class="transaction-timestamp">${formattedTime}</span>
           </div>
@@ -1233,7 +1233,7 @@ function renderEpgpTable(gearValues) {
             data-slot="${escHtml(leftSlot)}"
             value="${leftVal}"
             min="0"
-            step="1"
+            step="0.1"
           >
         </td>
         ${rightSlot ? `
@@ -1245,7 +1245,7 @@ function renderEpgpTable(gearValues) {
               data-slot="${escHtml(rightSlot)}"
               value="${rightVal}"
               min="0"
-              step="1"
+              step="0.1"
             >
           </td>
         ` : `
@@ -1270,7 +1270,7 @@ $('#save-epgp-btn').addEventListener('click', async () => {
 
   const gear_values = Array.from($$('.gear-input')).map(input => ({
     slot_name:   input.dataset.slot,
-    point_value: parseInt(input.value, 10) || 0,
+    point_value: parseFloat(input.value) || 0,
   }));
 
   try {
@@ -1313,7 +1313,7 @@ $('#select-everyone-btn').addEventListener('click', () => {
 // Edit EP - Give Points Button
 $('#give-bonus-btn').addEventListener('click', async () => {
   const btn = $('#give-bonus-btn');
-  const bonusEp = parseInt($('#bonus-ep-input').value, 10);
+  const bonusEp = parseFloat($('#bonus-ep-input').value);
   const reason = $('#bonus-reason-input').value.trim();
   const specialDate = $('#bonus-date-input').value;
 
@@ -1417,7 +1417,7 @@ $('#select-everyone-gp-btn').addEventListener('click', () => {
 // Edit GP - Give Points Button
 $('#give-gp-btn').addEventListener('click', async () => {
   const btn = $('#give-gp-btn');
-  const gpAmount = parseInt($('#bulk-gp-input').value, 10);
+  const gpAmount = parseFloat($('#bulk-gp-input').value);
   const reason = $('#bulk-gp-reason-input').value.trim();
 
   if (isNaN(gpAmount) || gpAmount <= 0) {
@@ -1940,7 +1940,7 @@ cancelCustomEpBtn.addEventListener('click', () => {
 function resetCustomEpForm() {
   $('#custom-ep-name').value = '';
   $('#custom-ep-description').value = '';
-  $('#custom-ep-points').value = '0';
+  $('#custom-ep-points').value = '0.0';
 }
 
 saveCustomEpBtn.addEventListener('click', async () => {
@@ -1959,7 +1959,7 @@ saveCustomEpBtn.addEventListener('click', async () => {
     const res = await apiFetch('/api/custom-ep-buttons', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, description, ep: parseInt(ep) || 0 }),
+      body: JSON.stringify({ name, description, ep: parseFloat(ep) || 0 }),
     });
 
     const data = await res.json();
@@ -2051,7 +2051,7 @@ saveEditTransactionBtn.addEventListener('click', async () => {
   const amount = $('#edit-transaction-amount').value.trim();
   const reason = $('#edit-transaction-reason').value.trim();
 
-  if (!amount || isNaN(parseInt(amount))) {
+  if (!amount || isNaN(parseFloat(amount))) {
     showMessage('roster', 'error', '✗ Please enter a valid amount');
     return;
   }
@@ -2062,7 +2062,7 @@ saveEditTransactionBtn.addEventListener('click', async () => {
     const res = await apiFetch(`/api/transaction-history?id=${id}&type=${type}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: parseInt(amount), reason }),
+      body: JSON.stringify({ amount: parseFloat(amount), reason }),
     });
 
     const data = await res.json();
@@ -2250,7 +2250,7 @@ function renderBossesView(items) {
                       ${escHtml(item.name || `Item #${item.item_id}`)}
                     </a>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                      ${(item.gp_value !== null && item.gp_value !== undefined) ? `<span class="loot-gp-badge">+${item.gp_value} GP</span>` : ''}
+                      ${(item.gp_value !== null && item.gp_value !== undefined) ? `<span class="loot-gp-badge">+${item.gp_value.toFixed(1)} GP</span>` : ''}
                       <span class="loot-slot-tag" style="font-size: 12px !important;">${escHtml(item.slot || item.typeCode || '')}</span>
                     </div>
                   </div>
@@ -2294,7 +2294,7 @@ async function openGearValuesModal() {
         grid.innerHTML = values.map(v => `
           <div class="gear-value-item" style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; font-size: 15px;">
             <span style="text-transform: capitalize; font-weight: 500;">${escHtml(v.slot_name)}</span>
-            <span style="font-weight: 700; color: var(--color-gold);">+${v.point_value} GP</span>
+            <span style="font-weight: 700; color: var(--color-gold);">+${v.point_value.toFixed(1)} GP</span>
           </div>
         `).join('');
       }
