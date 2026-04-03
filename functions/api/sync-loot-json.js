@@ -210,22 +210,27 @@ export async function onRequest({ request, env }) {
           // Map both "TOKEN" and "tier token" to the "tier token" key in settings
           const normalizedSlot = (itemSlot || '').toLowerCase();
           const slotKey = (normalizedSlot === 'token' || normalizedSlot === 'tier token') ? 'token' : normalizedSlot;
-          let gpAmount = gearMap.get(slotKey) || 0;
-
-          // User requirement: mog or off spec should give 0 GP
-          // Minor Upgrade should be half GP
+          // GP Award Whitelist Logic
           const respLower = (response || '').toLowerCase();
           let responseTag = '';
+          let gpFactor = 0; // Default to 0 for unknown or 'Pass'
 
-          if (respLower === 'mog' || respLower === 'off spec' || respLower === 'offspec') {
-            gpAmount = 0;
-            responseTag = ` [${response}]`;
+          if (['bis', 'need', 'gives 2 pc', 'gives 4 pc', 'major upgrade', 'greed'].includes(respLower)) {
+            gpFactor = 1.0;
           } else if (respLower === 'minor upgrade' || respLower === 'minorupgrade') {
-            gpAmount = (gpAmount * 0.25);
+            gpFactor = 0.25;
             responseTag = ` [${response}]`;
+          } else {
+            // Mog, Offspec, Pass, etc.
+            gpFactor = 0;
+            if (respLower !== 'pass') {
+              responseTag = ` [${response}]`;
+            }
           }
 
-          if (isNew && charInfo && (gpAmount > 0 || respLower === 'mog' || respLower === 'off spec' || respLower === 'offspec')) {
+          let gpAmount = (gearMap.get(slotKey) || 0) * gpFactor;
+
+          if (isNew && charInfo && (gpAmount > 0 || ['mog', 'off spec', 'offspec'].includes(respLower))) {
             const logReason = `Awarded https://www.wowhead.com/item=${itemId} (Loot History)${responseTag}`;
             gpStatements.push(
               env.DB.prepare(`
