@@ -89,7 +89,7 @@ export async function onRequest({ request, env }) {
 
       if (statements.length > 0) {
         // Update last_pr_sync and reason to trigger DI Monitor
-        statements.push(env.DB.prepare("UPDATE settings SET value = ? WHERE key = 'last_pr_sync'").bind(new Date().toISOString()));
+        statements.push(env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('last_pr_sync', ?)").bind(new Date().toISOString()));
         statements.push(env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('last_pr_sync_reason', 'Attendance Sync')"));
 
         await env.DB.batch(statements);
@@ -99,7 +99,9 @@ export async function onRequest({ request, env }) {
 
       return new Response(JSON.stringify({ 
         success: true, 
-        message: statements.length > 0 ? 'Attendance recorded' : 'All members already processed for this day' 
+        message: statements.length > 0 ? 'Attendance recorded' : 'All members already processed for this day',
+        present: presentNamesList,
+        ep: onTimeEp
       }), { status: 201, headers });
     }
 

@@ -21,7 +21,7 @@ export async function onRequest({ request, env }) {
     
     // Update the last_pr_sync and reason
     await env.DB.batch([
-      env.DB.prepare("UPDATE settings SET value = ? WHERE key = 'last_pr_sync'").bind(now),
+      env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('last_pr_sync', ?)").bind(now),
       env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('last_pr_sync_reason', 'Manual Sync')")
     ]);
 

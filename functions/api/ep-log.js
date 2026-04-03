@@ -100,7 +100,7 @@ export async function onRequest({ request, env }) {
 
 
       // Update last_pr_sync and reason to trigger DI Monitor
-      statements.push(env.DB.prepare("UPDATE settings SET value = ? WHERE key = 'last_pr_sync'").bind(new Date().toISOString()));
+      statements.push(env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('last_pr_sync', ?)").bind(new Date().toISOString()));
       statements.push(env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('last_pr_sync_reason', 'EP Edit')"));
 
       await env.DB.batch(statements);
