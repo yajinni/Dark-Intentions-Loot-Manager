@@ -27,10 +27,10 @@ export async function onRequest({ request, env }) {
       settingsRows.forEach(row => settings[row.key] = row.value);
       
       const apiKey = settings.wowaudit_api_key;
-      const minVaultLevel = parseInt(settings.min_vault_level, 10) || 272;
-      const v1Ep = parseInt(settings.vault_1_ep, 10) || 1;
-      const v2Ep = parseInt(settings.vault_2_ep, 10) || 1;
-      const v3Ep = parseInt(settings.vault_3_ep, 10) || 1;
+      const minVaultLevel = parseFloat(settings.min_vault_level) || 272;
+      const v1Ep = parseFloat(settings.vault_1_ep) || 1;
+      const v2Ep = parseFloat(settings.vault_2_ep) || 1;
+      const v3Ep = parseFloat(settings.vault_3_ep) || 1;
 
       if (!apiKey) {
         return new Response(JSON.stringify({ error: 'WoWAudit API key not configured' }), { status: 400, headers });
@@ -157,8 +157,8 @@ export async function onRequest({ request, env }) {
 
       for (const [ep, names] of Object.entries(groupedByEp)) {
           if (names.length === 0) continue;
-          const filledSlots = (parseInt(ep)/v1Ep); // Simplified assumption that all vX are same, or just for reasoning
-          const reason = parseInt(ep) > 0 ? `${filledSlots} max slots filled` : "No level 10 Keys Ran";
+          const filledSlots = (parseFloat(ep)/v1Ep); // Simplified assumption that all vX are same, or just for reasoning
+          const reason = parseFloat(ep) > 0 ? `${filledSlots} max slots filled` : "No level 10 Keys Ran";
           const logMsg = `Awarded ${ep} EP to ${names.length} characters (Reason: ${reason})`;
           await logEvent(env, 'success', 'Roster', logMsg, { names, period: historicalPeriodId });
       }
